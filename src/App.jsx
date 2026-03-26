@@ -63,6 +63,11 @@ function App() {
     setCurrentPage('home')
   }
 
+  function handleMarkComplete(eventId) {
+    setEvents(prev => prev.map(e => e.id === eventId ? { ...e, status: 'past' } : e))
+    setSelectedEvent(prev => ({ ...prev, status: 'past' }))
+  }
+
   function handleDeleteEvent(event) {
     setEvents(prev => prev.filter(e => e.id !== event.id))
     localStorage.removeItem(`fp_list_${event.id}`)
@@ -108,6 +113,7 @@ function App() {
           <PackingListPage
             event={selectedEvent}
             onBack={() => setCurrentPage('home')}
+            onMarkComplete={handleMarkComplete}
           />
         )}
       </main>
