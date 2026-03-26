@@ -38,6 +38,7 @@ function App() {
     return saved ? JSON.parse(saved) : SAMPLE_EVENTS
   })
   const [currentPage, setCurrentPage] = useState('home')
+  const [editingEvent, setEditingEvent] = useState(null)
 
   useEffect(() => {
     localStorage.setItem('fp_events', JSON.stringify(events))
@@ -45,6 +46,17 @@ function App() {
 
   function handleAddEvent(newEvent) {
     setEvents(prev => [...prev, newEvent])
+    setCurrentPage('home')
+  }
+
+  function handleEditEvent(event) {
+    setEditingEvent(event)
+    setCurrentPage('edit')
+  }
+
+  function handleSaveEvent(updatedEvent) {
+    setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e))
+    setEditingEvent(null)
     setCurrentPage('home')
   }
 
@@ -68,11 +80,18 @@ function App() {
 
       <main className="main">
         {currentPage === 'home' && (
-          <HomePage events={events} onOpenEvent={handleOpenEvent} />
+          <HomePage events={events} onOpenEvent={handleOpenEvent} onEditEvent={handleEditEvent} />
         )}
         {currentPage === 'create' && (
           <CreateEventPage
             onAdd={handleAddEvent}
+            onCancel={() => setCurrentPage('home')}
+          />
+        )}
+        {currentPage === 'edit' && (
+          <CreateEventPage
+            initialEvent={editingEvent}
+            onSave={handleSaveEvent}
             onCancel={() => setCurrentPage('home')}
           />
         )}

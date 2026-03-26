@@ -9,7 +9,7 @@ function formatDateRange(startStr, endStr) {
   return `${startFormatted} – ${endFormatted}`
 }
 
-function EventCard({ event, onOpen, isPast }) {
+function EventCard({ event, onOpen, onEdit, isPast }) {
   return (
     <div className={`event-card ${isPast ? 'event-card--past' : ''}`}>
       <div className="event-card__body">
@@ -22,6 +22,9 @@ function EventCard({ event, onOpen, isPast }) {
       <div className="event-card__footer">
         <button className="btn btn--primary" onClick={() => onOpen(event)}>
           {isPast ? 'View List' : 'Packing List'}
+        </button>
+        <button className="btn btn--secondary" onClick={() => onEdit(event)}>
+          Edit
         </button>
       </div>
     </div>

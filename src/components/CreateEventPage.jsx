@@ -3,17 +3,29 @@ import './CreateEventPage.css'
 
 const WEATHER_CONDITIONS = ['Rain', 'Snow', 'High Wind']
 
-function CreateEventPage({ onAdd, onCancel }) {
-  const [form, setForm] = useState({
-    name: '',
-    location: '',
-    startDate: '',
-    endDate: '',
-    travelDaysTo: 0,
-    travelDaysFrom: 0,
-    weatherHigh: '',
-    weatherLow: '',
-    weatherConditions: [],
+function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
+  const editing = Boolean(initialEvent)
+
+  const [form, setForm] = useState(() => {
+    if (initialEvent) {
+      return {
+        ...initialEvent,
+        weatherHigh: initialEvent.weatherHigh ?? '',
+        weatherLow: initialEvent.weatherLow ?? '',
+        weatherConditions: initialEvent.weatherConditions ?? [],
+      }
+    }
+    return {
+      name: '',
+      location: '',
+      startDate: '',
+      endDate: '',
+      travelDaysTo: 0,
+      travelDaysFrom: 0,
+      weatherHigh: '',
+      weatherLow: '',
+      weatherConditions: [],
+    }
   })
 
   function handleChange(e) {
@@ -35,20 +47,23 @@ function CreateEventPage({ onAdd, onCancel }) {
 
   function handleSubmit(e) {
     e.preventDefault()
-    onAdd({
+    const updated = {
       ...form,
-      id: Date.now(),
-      status: 'planning',
       travelDaysTo: Number(form.travelDaysTo),
       travelDaysFrom: Number(form.travelDaysFrom),
       weatherHigh: form.weatherHigh !== '' ? Number(form.weatherHigh) : null,
       weatherLow: form.weatherLow !== '' ? Number(form.weatherLow) : null,
-    })
+    }
+    if (editing) {
+      onSave(updated)
+    } else {
+      onAdd({ ...updated, id: Date.now(), status: 'planning' })
+    }
   }
 
   return (
     <div className="create-event-page">
-      <h2>New Event</h2>
+      <h2>{editing ? 'Edit Event' : 'New Event'}</h2>
       <form className="event-form" onSubmit={handleSubmit}>
 
         <div className="form-group">
@@ -176,7 +191,7 @@ function CreateEventPage({ onAdd, onCancel }) {
             Cancel
           </button>
           <button type="submit" className="btn btn--primary">
-            Create Event
+            {editing ? 'Save Changes' : 'Create Event'}
           </button>
         </div>
 
