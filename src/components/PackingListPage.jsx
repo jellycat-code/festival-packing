@@ -63,6 +63,11 @@ function PackingListPage({ event, onBack }) {
     ))
   }
 
+  function resetSuggestions() {
+    if (!window.confirm('This will wipe your current list and start fresh with new suggestions. Any items you added or changes you made will be lost. Continue?')) return
+    setItems(generateSuggestions(event))
+  }
+
   function removeItem(id) {
     setItems(prev => prev.map(item =>
       item.id === id ? { ...item, rejected: true } : item
@@ -100,6 +105,9 @@ function PackingListPage({ event, onBack }) {
           <h2>{event.name}</h2>
           <p>{event.location} &middot; {formatDateRange(event.startDate, event.endDate)}</p>
         </div>
+        <button className="btn-reset" onClick={resetSuggestions}>
+          Reset suggestions
+        </button>
       </div>
 
       <div className="notes-section">

@@ -75,3 +75,13 @@
 .btn--secondary:hover {
   background-color: #ede9e4;
 }
+
+.btn--danger {
+  background-color: transparent;
+  color: #b94040;
+  border: 1px solid #e0b4b4;
+}
+
+.btn--danger:hover {
+  background-color: #fdf0f0;
+}

@@ -9,7 +9,12 @@ function formatDateRange(startStr, endStr) {
   return `${startFormatted} – ${endFormatted}`
 }
 
-function EventCard({ event, onOpen, onEdit, isPast }) {
+function EventCard({ event, onOpen, onEdit, onDelete, isPast }) {
+  function handleDelete() {
+    if (!window.confirm(`Delete "${event.name}"? This cannot be undone.`)) return
+    onDelete(event)
+  }
+
   return (
     <div className={`event-card ${isPast ? 'event-card--past' : ''}`}>
       <div className="event-card__body">
@@ -25,6 +30,9 @@ function EventCard({ event, onOpen, onEdit, isPast }) {
         </button>
         <button className="btn btn--secondary" onClick={() => onEdit(event)}>
           Edit
+        </button>
+        <button className="btn btn--danger" onClick={handleDelete}>
+          Delete
         </button>
       </div>
     </div>

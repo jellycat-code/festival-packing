@@ -63,6 +63,12 @@ function App() {
     setCurrentPage('home')
   }
 
+  function handleDeleteEvent(event) {
+    setEvents(prev => prev.filter(e => e.id !== event.id))
+    localStorage.removeItem(`fp_list_${event.id}`)
+    localStorage.removeItem(`fp_notes_${event.id}`)
+  }
+
   function handleOpenEvent(event) {
     setSelectedEvent(event)
     setCurrentPage('packing')
@@ -83,7 +89,7 @@ function App() {
 
       <main className="main">
         {currentPage === 'home' && (
-          <HomePage events={events} onOpenEvent={handleOpenEvent} onEditEvent={handleEditEvent} />
+          <HomePage events={events} onOpenEvent={handleOpenEvent} onEditEvent={handleEditEvent} onDeleteEvent={handleDeleteEvent} />
         )}
         {currentPage === 'create' && (
           <CreateEventPage

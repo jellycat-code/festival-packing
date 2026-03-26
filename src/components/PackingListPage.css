@@ -27,6 +27,23 @@
   color: #2a2a2a;
 }
 
+.btn-reset {
+  background: none;
+  border: 1px solid #d8d2cc;
+  border-radius: 6px;
+  color: #8a847e;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.btn-reset:hover {
+  border-color: #b0a99e;
+  color: #5a5550;
+}
+
 .packing-list-title {
   flex: 1;
 }

@@ -1,7 +1,7 @@
 import EventCard from './EventCard'
 import './HomePage.css'
 
-function HomePage({ events, onOpenEvent, onEditEvent }) {
+function HomePage({ events, onOpenEvent, onEditEvent, onDeleteEvent }) {
   const byDate = (a, b) => new Date(a.startDate) - new Date(b.startDate)
   const activeEvents = events.filter(e => e.status === 'planning').sort(byDate)
   const pastEvents = events.filter(e => e.status === 'past').sort(byDate)
@@ -15,7 +15,7 @@ function HomePage({ events, onOpenEvent, onEditEvent }) {
         ) : (
           <div className="event-grid">
             {activeEvents.map(event => (
-              <EventCard key={event.id} event={event} onOpen={onOpenEvent} onEdit={onEditEvent} />
+              <EventCard key={event.id} event={event} onOpen={onOpenEvent} onEdit={onEditEvent} onDelete={onDeleteEvent} />
             ))}
           </div>
         )}
@@ -28,7 +28,7 @@ function HomePage({ events, onOpenEvent, onEditEvent }) {
         ) : (
           <div className="event-grid">
             {pastEvents.map(event => (
-              <EventCard key={event.id} event={event} onOpen={onOpenEvent} onEdit={onEditEvent} isPast />
+              <EventCard key={event.id} event={event} onOpen={onOpenEvent} onEdit={onEditEvent} onDelete={onDeleteEvent} isPast />
             ))}
           </div>
         )}
