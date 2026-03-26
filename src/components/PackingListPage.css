@@ -238,6 +238,48 @@
   background: #f0ece7;
 }
 
+/* Sub-items */
+.item-row--child {
+  padding-left: 2rem;
+  background: #faf9f7;
+  border-bottom-color: #f0ece7;
+}
+
+.item-row--add-sub-form {
+  padding-left: 2rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  list-style: none;
+}
+
+.add-item-form--sub {
+  margin-top: 0;
+}
+
+.sub-item-action {
+  list-style: none;
+  padding-left: 2rem;
+  border-bottom: 1px solid #f5f2ee;
+}
+
+.sub-item-action:last-child {
+  border-bottom: none;
+}
+
+.btn-add-sub {
+  background: none;
+  border: none;
+  font-size: 0.78rem;
+  color: #c8c2bc;
+  cursor: pointer;
+  padding: 0.3rem 0;
+  transition: color 0.15s;
+}
+
+.btn-add-sub:hover {
+  color: #8a847e;
+}
+
 /* Add item */
 .btn-add-item {
   background: none;

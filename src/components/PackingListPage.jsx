@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { generateSuggestions } from '../data/suggestions'
 import './PackingListPage.css'
 
@@ -35,86 +35,69 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
     return saved ? JSON.parse(saved) : []
   })
 
-  const [view, setView] = useState('packing') // 'packing' | 'shopping'
+  const [view, setView] = useState('packing')
   const [feedbackMode, setFeedbackMode] = useState(false)
-  const [addingTo, setAddingTo] = useState(null)
+  const [addingTo, setAddingTo] = useState(null)       // category name
+  const [addingSubTo, setAddingSubTo] = useState(null) // parent item id
   const [newItemName, setNewItemName] = useState('')
+  const [newSubItemName, setNewSubItemName] = useState('')
   const [newWishName, setNewWishName] = useState('')
 
   const isPast = event.status === 'past'
 
-  useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(items))
-  }, [items, storageKey])
+  useEffect(() => { localStorage.setItem(storageKey, JSON.stringify(items)) }, [items, storageKey])
+  useEffect(() => { localStorage.setItem(notesKey, notes) }, [notes, notesKey])
+  useEffect(() => { localStorage.setItem(wishKey, JSON.stringify(wishItems)) }, [wishItems, wishKey])
 
-  useEffect(() => {
-    localStorage.setItem(notesKey, notes)
-  }, [notes, notesKey])
-
-  useEffect(() => {
-    localStorage.setItem(wishKey, JSON.stringify(wishItems))
-  }, [wishItems, wishKey])
-
-  // --- Packing list actions ---
+  // --- Item actions ---
   function togglePacked(id) {
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, packed: !item.packed } : item
-    ))
+    setItems(prev => prev.map(i => i.id === id ? { ...i, packed: !i.packed } : i))
   }
-
   function togglePurchase(id) {
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, needsToPurchase: !item.needsToPurchase } : item
-    ))
+    setItems(prev => prev.map(i => i.id === id ? { ...i, needsToPurchase: !i.needsToPurchase } : i))
   }
-
   function updateQuantity(id, value) {
     const qty = Math.max(1, Number(value) || 1)
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, quantity: qty } : item
-    ))
+    setItems(prev => prev.map(i => i.id === id ? { ...i, quantity: qty } : i))
   }
-
   function removeItem(id) {
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, rejected: true } : item
-    ))
+    setItems(prev => prev.map(i => i.id === id ? { ...i, rejected: true } : i))
   }
-
   function restoreItem(id) {
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, rejected: false } : item
+    setItems(prev => prev.map(i => i.id === id ? { ...i, rejected: false } : i))
+  }
+  function setItemFeedback(id, feedback) {
+    setItems(prev => prev.map(i =>
+      i.id === id ? { ...i, feedback: i.feedback === feedback ? null : feedback } : i
     ))
   }
-
-  function addItem(category) {
-    if (!newItemName.trim()) return
-    setItems(prev => [...prev, {
-      id: Date.now(),
-      name: newItemName.trim(),
-      category,
-      quantity: 1,
-      packed: false,
-      needsToPurchase: false,
-      custom: true,
-      rejected: false,
-    }])
-    setNewItemName('')
-    setAddingTo(null)
-  }
-
   function resetSuggestions() {
     if (!window.confirm('This will wipe your current list and start fresh with new suggestions. Any items you added or changes you made will be lost. Continue?')) return
     setItems(generateSuggestions(event))
   }
 
-  // --- Feedback actions ---
-  function setItemFeedback(id, feedback) {
-    setItems(prev => prev.map(item =>
-      item.id === id
-        ? { ...item, feedback: item.feedback === feedback ? null : feedback }
-        : item
-    ))
+  function addItem(category) {
+    if (!newItemName.trim()) return
+    setItems(prev => [...prev, {
+      id: Date.now(), name: newItemName.trim(), category,
+      quantity: 1, singleton: false, parentId: null,
+      packed: false, needsToPurchase: false, custom: true, rejected: false,
+    }])
+    setNewItemName('')
+    setAddingTo(null)
+  }
+
+  function addSubItem(parentId) {
+    if (!newSubItemName.trim()) return
+    const parent = items.find(i => i.id === parentId)
+    setItems(prev => [...prev, {
+      id: Date.now(), name: newSubItemName.trim(),
+      category: parent?.category || 'Misc',
+      quantity: 1, singleton: false, parentId,
+      packed: false, needsToPurchase: false, custom: true, rejected: false,
+    }])
+    setNewSubItemName('')
+    setAddingSubTo(null)
   }
 
   function addWishItem() {
@@ -122,7 +105,6 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
     setWishItems(prev => [...prev, { id: Date.now(), name: newWishName.trim() }])
     setNewWishName('')
   }
-
   function removeWishItem(id) {
     setWishItems(prev => prev.filter(i => i.id !== id))
   }
@@ -136,8 +118,50 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
   const visibleItems = items.filter(i => !i.rejected)
   const rejectedItems = items.filter(i => i.rejected)
   const shoppingItems = visibleItems.filter(i => i.needsToPurchase)
-  const activeCategories = CATEGORY_ORDER.filter(cat => visibleItems.some(i => i.category === cat))
+  const activeCategories = CATEGORY_ORDER.filter(cat => visibleItems.some(i => i.category === cat && !i.parentId))
   const shoppingCategories = CATEGORY_ORDER.filter(cat => shoppingItems.some(i => i.category === cat))
+
+  // Whether to show a quantity stepper for an item
+  function showQty(item) {
+    if (item.singleton) return false
+    if (item.parentId) return true  // children always get stepper
+    if (visibleItems.some(i => i.parentId === item.id)) return false  // parents don't
+    return true
+  }
+
+  // Render actions for a single item row
+  function renderActions(item) {
+    if (feedbackMode) {
+      return (
+        <>
+          <button
+            className={`btn-feedback ${item.feedback === 'didntNeed' ? 'btn-feedback--didnt-need' : ''}`}
+            onClick={() => setItemFeedback(item.id, 'didntNeed')}
+          >Didn't need</button>
+          <button
+            className={`btn-feedback ${item.feedback === 'needMore' ? 'btn-feedback--need-more' : ''}`}
+            onClick={() => setItemFeedback(item.id, 'needMore')}
+          >Need more</button>
+        </>
+      )
+    }
+    return (
+      <>
+        {showQty(item) && (
+          <div className="item-qty">
+            <button className="qty-btn" onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)} disabled={(item.quantity || 1) <= 1}>−</button>
+            <span className="qty-value">{item.quantity || 1}</span>
+            <button className="qty-btn" onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}>+</button>
+          </div>
+        )}
+        <button
+          className={`btn-buy ${item.needsToPurchase ? 'btn-buy--active' : ''}`}
+          onClick={() => togglePurchase(item.id)}
+        >{item.needsToPurchase ? 'Buy ✓' : 'Buy?'}</button>
+        <button className="btn-remove" onClick={() => removeItem(item.id)}>✕</button>
+      </>
+    )
+  }
 
   return (
     <div className="packing-list-page">
@@ -151,73 +175,51 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
         </div>
         <div className="packing-list-header-actions">
           {!isPast && (
-            <button className="btn-complete" onClick={handleMarkComplete}>
-              Mark as Complete
-            </button>
+            <button className="btn-complete" onClick={handleMarkComplete}>Mark as Complete</button>
           )}
-          <button className="btn-reset" onClick={resetSuggestions}>
-            Reset suggestions
-          </button>
+          <button className="btn-reset" onClick={resetSuggestions}>Reset suggestions</button>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="view-tabs">
-        <button
-          className={`view-tab ${view === 'packing' ? 'view-tab--active' : ''}`}
-          onClick={() => setView('packing')}
-        >
+        <button className={`view-tab ${view === 'packing' ? 'view-tab--active' : ''}`} onClick={() => setView('packing')}>
           Packing List
         </button>
-        <button
-          className={`view-tab ${view === 'shopping' ? 'view-tab--active' : ''}`}
-          onClick={() => setView('shopping')}
-        >
+        <button className={`view-tab ${view === 'shopping' ? 'view-tab--active' : ''}`} onClick={() => setView('shopping')}>
           Shopping List
-          {shoppingItems.length > 0 && (
-            <span className="tab-badge">{shoppingItems.length}</span>
-          )}
+          {shoppingItems.length > 0 && <span className="tab-badge">{shoppingItems.length}</span>}
         </button>
       </div>
 
       {/* ── SHOPPING LIST VIEW ── */}
       {view === 'shopping' && (
-        <>
-          {shoppingItems.length === 0 ? (
-            <div className="empty-state-box">
-              <p>No items marked for purchase yet.</p>
-              <p>On the packing list, hit <strong>Buy?</strong> on anything you still need to get.</p>
-            </div>
-          ) : (
-            shoppingCategories.map(category => {
-              const catItems = shoppingItems.filter(i => i.category === category)
-              return (
-                <section key={category} className="category-section">
-                  <h3 className="category-heading">{category}</h3>
-                  <ul className="item-list">
-                    {catItems.map(item => (
-                      <li key={item.id} className="item-row">
-                        <input
-                          type="checkbox"
-                          className="item-checkbox"
-                          onChange={() => togglePurchase(item.id)}
-                        />
-                        <span className="item-name">{item.name}</span>
-                        <span className="qty-label">×{item.quantity || 1}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )
-            })
-          )}
-        </>
+        shoppingItems.length === 0 ? (
+          <div className="empty-state-box">
+            <p>No items marked for purchase yet.</p>
+            <p>On the packing list, hit <strong>Buy?</strong> on anything you still need to get.</p>
+          </div>
+        ) : (
+          shoppingCategories.map(category => (
+            <section key={category} className="category-section">
+              <h3 className="category-heading">{category}</h3>
+              <ul className="item-list">
+                {shoppingItems.filter(i => i.category === category).map(item => (
+                  <li key={item.id} className={`item-row ${item.parentId ? 'item-row--child' : ''}`}>
+                    <input type="checkbox" className="item-checkbox" onChange={() => togglePurchase(item.id)} />
+                    <span className="item-name">{item.name}</span>
+                    <span className="qty-label">×{item.quantity || 1}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
+        )
       )}
 
       {/* ── PACKING LIST VIEW ── */}
       {view === 'packing' && (
         <>
-          {/* Post-event feedback banner */}
           {isPast && (
             <div className="feedback-banner">
               <div>
@@ -227,90 +229,82 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
               <button
                 className={`btn-feedback-toggle ${feedbackMode ? 'btn-feedback-toggle--active' : ''}`}
                 onClick={() => setFeedbackMode(prev => !prev)}
-              >
-                {feedbackMode ? 'Done' : 'Add feedback'}
-              </button>
+              >{feedbackMode ? 'Done' : 'Add feedback'}</button>
             </div>
           )}
 
           <div className="notes-section">
             <label htmlFor="notes">Notes</label>
             <textarea
-              id="notes"
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
+              id="notes" value={notes} onChange={e => setNotes(e.target.value)}
               placeholder="Camp address, gate times, carpool info, anything you need to remember..."
               rows={3}
             />
           </div>
 
           {activeCategories.map(category => {
-            const categoryItems = visibleItems.filter(i => i.category === category)
+            const topLevel = visibleItems.filter(i => i.category === category && !i.parentId)
             return (
               <section key={category} className="category-section">
                 <h3 className="category-heading">{category}</h3>
                 <ul className="item-list">
-                  {categoryItems.map(item => (
-                    <li key={item.id} className={`item-row ${item.packed ? 'item-row--packed' : ''}`}>
-                      <input
-                        type="checkbox"
-                        checked={item.packed}
-                        onChange={() => togglePacked(item.id)}
-                        className="item-checkbox"
-                      />
-                      <span className="item-name">{item.name}</span>
-                      <div className="item-actions">
-                        {feedbackMode ? (
-                          <>
-                            <button
-                              className={`btn-feedback ${item.feedback === 'didntNeed' ? 'btn-feedback--didnt-need' : ''}`}
-                              onClick={() => setItemFeedback(item.id, 'didntNeed')}
-                              title="Didn't actually need this"
-                            >
-                              Didn't need
-                            </button>
-                            <button
-                              className={`btn-feedback ${item.feedback === 'needMore' ? 'btn-feedback--need-more' : ''}`}
-                              onClick={() => setItemFeedback(item.id, 'needMore')}
-                              title="Wish I had more of this"
-                            >
-                              Need more
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <div className="item-qty">
-                              <button
-                                className="qty-btn"
-                                onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)}
-                                disabled={(item.quantity || 1) <= 1}
-                              >−</button>
-                              <span className="qty-value">{item.quantity || 1}</span>
-                              <button
-                                className="qty-btn"
-                                onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}
-                              >+</button>
-                            </div>
-                            <button
-                              className={`btn-buy ${item.needsToPurchase ? 'btn-buy--active' : ''}`}
-                              onClick={() => togglePurchase(item.id)}
-                            >
-                              {item.needsToPurchase ? 'Buy ✓' : 'Buy?'}
-                            </button>
-                            <button className="btn-remove" onClick={() => removeItem(item.id)}>✕</button>
-                          </>
+                  {topLevel.map(item => {
+                    const children = visibleItems.filter(i => i.parentId === item.id)
+                    return (
+                      <Fragment key={item.id}>
+                        {/* Parent row */}
+                        <li className={`item-row ${item.packed ? 'item-row--packed' : ''}`}>
+                          <input type="checkbox" checked={item.packed} onChange={() => togglePacked(item.id)} className="item-checkbox" />
+                          <span className="item-name">{item.name}</span>
+                          <div className="item-actions">{renderActions(item)}</div>
+                        </li>
+
+                        {/* Children */}
+                        {children.map(child => (
+                          <li key={child.id} className={`item-row item-row--child ${child.packed ? 'item-row--packed' : ''}`}>
+                            <input type="checkbox" checked={child.packed} onChange={() => togglePacked(child.id)} className="item-checkbox" />
+                            <span className="item-name">{child.name}</span>
+                            <div className="item-actions">{renderActions(child)}</div>
+                          </li>
+                        ))}
+
+                        {/* Add sub-item */}
+                        {!feedbackMode && (
+                          addingSubTo === item.id ? (
+                            <li className="item-row item-row--add-sub-form">
+                              <div className="add-item-form add-item-form--sub">
+                                <input
+                                  type="text" value={newSubItemName}
+                                  onChange={e => setNewSubItemName(e.target.value)}
+                                  placeholder="Sub-item name"
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter') addSubItem(item.id)
+                                    if (e.key === 'Escape') { setAddingSubTo(null); setNewSubItemName('') }
+                                  }}
+                                  autoFocus
+                                />
+                                <button className="btn btn--primary" onClick={() => addSubItem(item.id)}>Add</button>
+                                <button className="btn btn--secondary" onClick={() => { setAddingSubTo(null); setNewSubItemName('') }}>Cancel</button>
+                              </div>
+                            </li>
+                          ) : (
+                            <li className="sub-item-action">
+                              <button className="btn-add-sub" onClick={() => { setAddingSubTo(item.id); setAddingTo(null) }}>
+                                + sub-item
+                              </button>
+                            </li>
+                          )
                         )}
-                      </div>
-                    </li>
-                  ))}
+                      </Fragment>
+                    )
+                  })}
                 </ul>
 
                 {!feedbackMode && (
                   addingTo === category ? (
                     <div className="add-item-form">
                       <input
-                        type="text"
-                        value={newItemName}
+                        type="text" value={newItemName}
                         onChange={e => setNewItemName(e.target.value)}
                         placeholder="Item name"
                         onKeyDown={e => {
@@ -323,7 +317,7 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
                       <button className="btn btn--secondary" onClick={() => { setAddingTo(null); setNewItemName('') }}>Cancel</button>
                     </div>
                   ) : (
-                    <button className="btn-add-item" onClick={() => setAddingTo(category)}>
+                    <button className="btn-add-item" onClick={() => { setAddingTo(category); setAddingSubTo(null) }}>
                       + Add item
                     </button>
                   )
@@ -334,11 +328,10 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
 
           {!feedbackMode && (
             <section className="category-section category-section--new">
-              <p className="add-category-hint">Don't see a category you need? Add items to Misc, or use the ✕ to clear out suggestions that don't apply to you.</p>
+              <p className="add-category-hint">Don't see a category you need? Add items to Misc, or use ✕ to clear out suggestions that don't apply to you.</p>
             </section>
           )}
 
-          {/* Wish I'd brought — only in feedback mode */}
           {feedbackMode && (
             <section className="category-section category-section--wish">
               <h3 className="category-heading">Wish I'd Brought</h3>
@@ -355,8 +348,7 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
               )}
               <div className="add-item-form">
                 <input
-                  type="text"
-                  value={newWishName}
+                  type="text" value={newWishName}
                   onChange={e => setNewWishName(e.target.value)}
                   placeholder="e.g. extra tarp, electrolyte packets..."
                   onKeyDown={e => { if (e.key === 'Enter') addWishItem() }}
