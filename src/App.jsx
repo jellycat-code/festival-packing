@@ -12,6 +12,7 @@ const SAMPLE_EVENTS = [
     endDate: '2026-09-07',
     travelDaysTo: 2,
     travelDaysFrom: 2,
+    buildDays: 3,
     weatherHigh: 100,
     weatherLow: 45,
     weatherConditions: ['High Wind'],

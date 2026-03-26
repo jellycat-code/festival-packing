@@ -22,6 +22,7 @@ function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
       endDate: '',
       travelDaysTo: 0,
       travelDaysFrom: 0,
+      buildDays: 0,
       weatherHigh: '',
       weatherLow: '',
       weatherConditions: [],
@@ -51,6 +52,7 @@ function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
       ...form,
       travelDaysTo: Number(form.travelDaysTo),
       travelDaysFrom: Number(form.travelDaysFrom),
+      buildDays: Number(form.buildDays),
       weatherHigh: form.weatherHigh !== '' ? Number(form.weatherHigh) : null,
       weatherLow: form.weatherLow !== '' ? Number(form.weatherLow) : null,
     }
@@ -140,6 +142,19 @@ function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
               onChange={handleChange}
             />
           </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="buildDays">Build Days (Pre-Event)</label>
+          <input
+            id="buildDays"
+            name="buildDays"
+            type="number"
+            min="0"
+            value={form.buildDays}
+            onChange={handleChange}
+          />
+          <span className="form-hint">Days spent on setup/build before the event starts. Affects work clothes and living essentials — not costumes or party gear.</span>
         </div>
 
         <fieldset className="form-fieldset">
