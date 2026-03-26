@@ -71,18 +71,18 @@ const MASTER_LIST = [
   { name: 'Ear plugs', category: 'Personal Care', qty: ({ totalDays }) => totalDays },
 
   // Clothing & Accessories
-  // Underwear and socks: 1 per day across the full trip
-  { name: 'Underwear', category: 'Clothing & Accessories', qty: ({ totalDays }) => totalDays },
-  { name: 'Socks', category: 'Clothing & Accessories', qty: ({ totalDays }) => totalDays },
-  // T-shirts: 1 per day (you sweat)
-  { name: 'T-shirts', category: 'Clothing & Accessories', qty: ({ totalDays }) => totalDays },
+  // Underwear, socks, t-shirts: 1 per festival day + 2 extras
+  { name: 'Underwear', category: 'Clothing & Accessories', qty: ({ eventDays }) => eventDays + 2 },
+  { name: 'Socks', category: 'Clothing & Accessories', qty: ({ eventDays }) => eventDays + 2 },
+  { name: 'T-shirts', category: 'Clothing & Accessories', qty: ({ eventDays }) => eventDays + 2 },
   // Pants can be worn multiple days
   { name: 'Pants / shorts', category: 'Clothing & Accessories', qty: ({ totalDays }) => Math.max(2, Math.ceil(totalDays / 3)) },
   // Layers can be worn multiple days
   { name: 'Sweater / layers', category: 'Clothing & Accessories', qty: ({ totalDays }) => Math.max(1, Math.ceil(totalDays / 3)) },
   { name: 'Closed-toe shoes', category: 'Clothing & Accessories' },
-  // Costume outfits are just for festival days, not travel or build
-  { name: 'Festival / costume outfits', category: 'Clothing & Accessories', qty: ({ eventDays }) => eventDays },
+  // Costume outfits are just for festival days, not travel or build — day and night are separate
+  { name: 'Festival / costume outfits (day)', category: 'Clothing & Accessories', qty: ({ eventDays }) => eventDays },
+  { name: 'Festival / costume outfits (night)', category: 'Clothing & Accessories', qty: ({ eventDays }) => eventDays },
   { name: 'Hat / sun protection', category: 'Clothing & Accessories' },
   { name: 'Sunglasses', category: 'Clothing & Accessories' },
   { name: 'Rain jacket', category: 'Clothing & Accessories', condition: e => e.weatherConditions?.includes('Rain') },
