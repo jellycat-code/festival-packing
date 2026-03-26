@@ -2,8 +2,9 @@ import EventCard from './EventCard'
 import './HomePage.css'
 
 function HomePage({ events, onOpenEvent }) {
-  const activeEvents = events.filter(e => e.status === 'planning')
-  const pastEvents = events.filter(e => e.status === 'past')
+  const byDate = (a, b) => new Date(a.startDate) - new Date(b.startDate)
+  const activeEvents = events.filter(e => e.status === 'planning').sort(byDate)
+  const pastEvents = events.filter(e => e.status === 'past').sort(byDate)
 
   return (
     <div className="home-page">
