@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import HomePage from './components/HomePage'
+import CreateEventPage from './components/CreateEventPage'
 import './App.css'
 
 const SAMPLE_EVENTS = [
@@ -11,6 +12,9 @@ const SAMPLE_EVENTS = [
     endDate: '2026-09-07',
     travelDaysTo: 2,
     travelDaysFrom: 2,
+    weatherHigh: 100,
+    weatherLow: 45,
+    weatherConditions: ['High Wind'],
     status: 'planning',
   },
   {
@@ -21,13 +25,28 @@ const SAMPLE_EVENTS = [
     endDate: '2025-08-10',
     travelDaysTo: 0,
     travelDaysFrom: 0,
+    weatherHigh: 88,
+    weatherLow: 55,
+    weatherConditions: [],
     status: 'past',
   },
 ]
 
 function App() {
-  const [events] = useState(SAMPLE_EVENTS)
+  const [events, setEvents] = useState(() => {
+    const saved = localStorage.getItem('fp_events')
+    return saved ? JSON.parse(saved) : SAMPLE_EVENTS
+  })
   const [currentPage, setCurrentPage] = useState('home')
+
+  useEffect(() => {
+    localStorage.setItem('fp_events', JSON.stringify(events))
+  }, [events])
+
+  function handleAddEvent(newEvent) {
+    setEvents(prev => [...prev, newEvent])
+    setCurrentPage('home')
+  }
 
   function handleOpenEvent(event) {
     // will navigate to packing list in Phase 4
@@ -50,6 +69,12 @@ function App() {
       <main className="main">
         {currentPage === 'home' && (
           <HomePage events={events} onOpenEvent={handleOpenEvent} />
+        )}
+        {currentPage === 'create' && (
+          <CreateEventPage
+            onAdd={handleAddEvent}
+            onCancel={() => setCurrentPage('home')}
+          />
         )}
       </main>
     </div>

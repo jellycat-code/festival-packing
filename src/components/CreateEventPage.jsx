@@ -1,0 +1,188 @@
+import { useState } from 'react'
+import './CreateEventPage.css'
+
+const WEATHER_CONDITIONS = ['Rain', 'Snow', 'High Wind']
+
+function CreateEventPage({ onAdd, onCancel }) {
+  const [form, setForm] = useState({
+    name: '',
+    location: '',
+    startDate: '',
+    endDate: '',
+    travelDaysTo: 0,
+    travelDaysFrom: 0,
+    weatherHigh: '',
+    weatherLow: '',
+    weatherConditions: [],
+  })
+
+  function handleChange(e) {
+    const { name, value } = e.target
+    setForm(prev => ({ ...prev, [name]: value }))
+  }
+
+  function handleConditionToggle(condition) {
+    setForm(prev => {
+      const already = prev.weatherConditions.includes(condition)
+      return {
+        ...prev,
+        weatherConditions: already
+          ? prev.weatherConditions.filter(c => c !== condition)
+          : [...prev.weatherConditions, condition],
+      }
+    })
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    onAdd({
+      ...form,
+      id: Date.now(),
+      status: 'planning',
+      travelDaysTo: Number(form.travelDaysTo),
+      travelDaysFrom: Number(form.travelDaysFrom),
+      weatherHigh: form.weatherHigh !== '' ? Number(form.weatherHigh) : null,
+      weatherLow: form.weatherLow !== '' ? Number(form.weatherLow) : null,
+    })
+  }
+
+  return (
+    <div className="create-event-page">
+      <h2>New Event</h2>
+      <form className="event-form" onSubmit={handleSubmit}>
+
+        <div className="form-group">
+          <label htmlFor="name">Event Name</label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            value={form.name}
+            onChange={handleChange}
+            placeholder="e.g. Burning Man 2026"
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="location">Location</label>
+          <input
+            id="location"
+            name="location"
+            type="text"
+            value={form.location}
+            onChange={handleChange}
+            placeholder="e.g. Black Rock Desert, NV"
+            required
+          />
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="startDate">Start Date</label>
+            <input
+              id="startDate"
+              name="startDate"
+              type="date"
+              value={form.startDate}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="endDate">End Date</label>
+            <input
+              id="endDate"
+              name="endDate"
+              type="date"
+              value={form.endDate}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="travelDaysTo">Travel Days (Getting There)</label>
+            <input
+              id="travelDaysTo"
+              name="travelDaysTo"
+              type="number"
+              min="0"
+              value={form.travelDaysTo}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="travelDaysFrom">Travel Days (Getting Home)</label>
+            <input
+              id="travelDaysFrom"
+              name="travelDaysFrom"
+              type="number"
+              min="0"
+              value={form.travelDaysFrom}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
+        <fieldset className="form-fieldset">
+          <legend>Weather Forecast</legend>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="weatherHigh">High Temp (°F)</label>
+              <input
+                id="weatherHigh"
+                name="weatherHigh"
+                type="number"
+                value={form.weatherHigh}
+                onChange={handleChange}
+                placeholder="e.g. 95"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="weatherLow">Low Temp (°F)</label>
+              <input
+                id="weatherLow"
+                name="weatherLow"
+                type="number"
+                value={form.weatherLow}
+                onChange={handleChange}
+                placeholder="e.g. 50"
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Expected Conditions</label>
+            <div className="checkbox-group">
+              {WEATHER_CONDITIONS.map(condition => (
+                <label key={condition} className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={form.weatherConditions.includes(condition)}
+                    onChange={() => handleConditionToggle(condition)}
+                  />
+                  {condition}
+                </label>
+              ))}
+            </div>
+          </div>
+        </fieldset>
+
+        <div className="form-actions">
+          <button type="button" className="btn btn--secondary" onClick={onCancel}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn--primary">
+            Create Event
+          </button>
+        </div>
+
+      </form>
+    </div>
+  )
+}
+
+export default CreateEventPage
