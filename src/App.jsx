@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import HomePage from './components/HomePage'
 import CreateEventPage from './components/CreateEventPage'
+import PackingListPage from './components/PackingListPage'
 import './App.css'
 
 const SAMPLE_EVENTS = [
@@ -40,6 +41,7 @@ function App() {
   })
   const [currentPage, setCurrentPage] = useState('home')
   const [editingEvent, setEditingEvent] = useState(null)
+  const [selectedEvent, setSelectedEvent] = useState(null)
 
   useEffect(() => {
     localStorage.setItem('fp_events', JSON.stringify(events))
@@ -62,8 +64,8 @@ function App() {
   }
 
   function handleOpenEvent(event) {
-    // will navigate to packing list in Phase 4
-    console.log('Open event:', event.name)
+    setSelectedEvent(event)
+    setCurrentPage('packing')
   }
 
   return (
@@ -94,6 +96,12 @@ function App() {
             initialEvent={editingEvent}
             onSave={handleSaveEvent}
             onCancel={() => setCurrentPage('home')}
+          />
+        )}
+        {currentPage === 'packing' && selectedEvent && (
+          <PackingListPage
+            event={selectedEvent}
+            onBack={() => setCurrentPage('home')}
           />
         )}
       </main>

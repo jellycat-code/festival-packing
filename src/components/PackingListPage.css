@@ -1,0 +1,236 @@
+.packing-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Header */
+.packing-list-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: #5a5550;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+  padding-top: 0.2rem;
+}
+
+.btn-back:hover {
+  color: #2a2a2a;
+}
+
+.packing-list-title {
+  flex: 1;
+}
+
+.packing-list-title h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.packing-list-title p {
+  font-size: 0.9rem;
+  color: #5a5550;
+}
+
+.packing-progress {
+  font-size: 0.85rem;
+  color: #8a847e;
+  white-space: nowrap;
+  padding-top: 0.2rem;
+}
+
+/* Notes */
+.notes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.notes-section label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.notes-section textarea {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #c8c2bc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #ffffff;
+  color: #2a2a2a;
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+
+.notes-section textarea:focus {
+  outline: none;
+  border-color: #2a2a2a;
+}
+
+/* Category sections */
+.category-section {
+  background: #ffffff;
+  border: 1px solid #e0dbd4;
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.category-heading {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #5a5550;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.category-count {
+  font-weight: 400;
+  color: #aaa49e;
+}
+
+/* Item list */
+.item-list {
+  list-style: none;
+  margin-bottom: 0.75rem;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f5f2ee;
+}
+
+.item-row:last-child {
+  border-bottom: none;
+}
+
+.item-row--packed .item-name {
+  text-decoration: line-through;
+  color: #b0a99e;
+}
+
+.item-checkbox {
+  width: 17px;
+  height: 17px;
+  accent-color: #2a2a2a;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.item-name {
+  flex: 1;
+  font-size: 0.95rem;
+  color: #2a2a2a;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.btn-buy {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid #d8d2cc;
+  background: transparent;
+  color: #8a847e;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btn-buy:hover {
+  border-color: #b0a99e;
+  color: #5a5550;
+}
+
+.btn-buy--active {
+  background: #f5efe6;
+  border-color: #c4a882;
+  color: #7a5c30;
+}
+
+.btn-remove {
+  font-size: 0.8rem;
+  color: #c8c2bc;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem 0.35rem;
+  border-radius: 4px;
+  line-height: 1;
+  transition: all 0.15s;
+}
+
+.btn-remove:hover {
+  color: #8a847e;
+  background: #f0ece7;
+}
+
+/* Add item */
+.btn-add-item {
+  background: none;
+  border: none;
+  color: #8a847e;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  transition: color 0.15s;
+}
+
+.btn-add-item:hover {
+  color: #2a2a2a;
+}
+
+.add-item-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.add-item-form input {
+  flex: 1;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #c8c2bc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #ffffff;
+}
+
+.add-item-form input:focus {
+  outline: none;
+  border-color: #2a2a2a;
+}
+
+.add-category-hint {
+  font-size: 0.85rem;
+  color: #aaa49e;
+}
+
+.category-section--new {
+  background: transparent;
+  border-color: #ede9e4;
+}
