@@ -74,6 +74,12 @@ function PackingListPage({ event, onBack }) {
     ))
   }
 
+  function restoreItem(id) {
+    setItems(prev => prev.map(item =>
+      item.id === id ? { ...item, rejected: false } : item
+    ))
+  }
+
   function addItem(category) {
     if (!newItemName.trim()) return
     setItems(prev => [...prev, {
@@ -91,6 +97,7 @@ function PackingListPage({ event, onBack }) {
   }
 
   const visibleItems = items.filter(i => !i.rejected)
+  const rejectedItems = items.filter(i => i.rejected)
 
   const activeCategories = CATEGORY_ORDER.filter(cat =>
     visibleItems.some(i => i.category === cat)
@@ -197,6 +204,26 @@ function PackingListPage({ event, onBack }) {
       <section className="category-section category-section--new">
         <p className="add-category-hint">Don't see a category you need? Add items to Misc, or use the ✕ to clear out suggestions that don't apply to you.</p>
       </section>
+
+      {rejectedItems.length > 0 && (
+        <section className="category-section category-section--rejected">
+          <h3 className="category-heading category-heading--rejected">Rejected Suggestions</h3>
+          <ul className="item-list">
+            {rejectedItems.map(item => (
+              <li key={item.id} className="item-row item-row--rejected">
+                <span className="item-name">{item.name}</span>
+                <span className="item-category-tag">{item.category}</span>
+                <button
+                  className="btn-restore"
+                  onClick={() => restoreItem(item.id)}
+                >
+                  Restore
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
     </div>
   )

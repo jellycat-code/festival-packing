@@ -284,3 +284,45 @@
   background: transparent;
   border-color: #ede9e4;
 }
+
+/* Rejected suggestions */
+.category-section--rejected {
+  background: transparent;
+  border-color: #ede9e4;
+}
+
+.category-heading--rejected {
+  color: #b8b2ac;
+}
+
+.item-row--rejected {
+  opacity: 0.6;
+}
+
+.item-row--rejected .item-name {
+  font-style: italic;
+  color: #8a847e;
+}
+
+.item-category-tag {
+  font-size: 0.75rem;
+  color: #aaa49e;
+  white-space: nowrap;
+}
+
+.btn-restore {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid #d8d2cc;
+  background: transparent;
+  color: #8a847e;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.btn-restore:hover {
+  border-color: #2a2a2a;
+  color: #2a2a2a;
+}
