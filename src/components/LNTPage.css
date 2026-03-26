@@ -1,0 +1,89 @@
+.lnt-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.lnt-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.lnt-header p {
+  font-size: 0.95rem;
+  color: #5a5550;
+}
+
+.lnt-principles {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lnt-card {
+  background: #ffffff;
+  border: 1px solid #e0dbd4;
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.lnt-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.lnt-number {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c8c2bc;
+  letter-spacing: 0.05em;
+  padding-top: 0.2rem;
+  flex-shrink: 0;
+  width: 1.5rem;
+}
+
+.lnt-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2a2a2a;
+  margin-bottom: 0.2rem;
+}
+
+.lnt-summary {
+  font-size: 0.875rem;
+  color: #5a5550;
+  font-style: italic;
+}
+
+.lnt-tips {
+  list-style: none;
+  padding-left: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.lnt-tips li {
+  font-size: 0.9rem;
+  color: #3a3530;
+  padding-left: 1rem;
+  position: relative;
+  line-height: 1.5;
+}
+
+.lnt-tips li::before {
+  content: '—';
+  position: absolute;
+  left: -0.25rem;
+  color: #c8c2bc;
+}
+
+.lnt-footer {
+  font-size: 0.82rem;
+  color: #aaa49e;
+  text-align: center;
+  padding-bottom: 1rem;
+}

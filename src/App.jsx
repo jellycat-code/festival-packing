@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import HomePage from './components/HomePage'
 import CreateEventPage from './components/CreateEventPage'
 import PackingListPage from './components/PackingListPage'
+import LNTPage from './components/LNTPage'
 import './App.css'
 
 const SAMPLE_EVENTS = [
@@ -109,6 +110,7 @@ function App() {
             onCancel={() => setCurrentPage('home')}
           />
         )}
+        {currentPage === 'lnt' && <LNTPage />}
         {currentPage === 'packing' && selectedEvent && (
           <PackingListPage
             event={selectedEvent}
