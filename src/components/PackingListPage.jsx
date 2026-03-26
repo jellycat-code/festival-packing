@@ -56,6 +56,13 @@ function PackingListPage({ event, onBack }) {
     ))
   }
 
+  function updateQuantity(id, value) {
+    const qty = Math.max(1, Number(value) || 1)
+    setItems(prev => prev.map(item =>
+      item.id === id ? { ...item, quantity: qty } : item
+    ))
+  }
+
   function removeItem(id) {
     setItems(prev => prev.map(item =>
       item.id === id ? { ...item, rejected: true } : item
@@ -68,6 +75,7 @@ function PackingListPage({ event, onBack }) {
       id: Date.now(),
       name: newItemName.trim(),
       category,
+      quantity: 1,
       packed: false,
       needsToPurchase: false,
       custom: true,
@@ -78,7 +86,6 @@ function PackingListPage({ event, onBack }) {
   }
 
   const visibleItems = items.filter(i => !i.rejected)
-  const packedCount = visibleItems.filter(i => i.packed).length
 
   const activeCategories = CATEGORY_ORDER.filter(cat =>
     visibleItems.some(i => i.category === cat)
@@ -92,9 +99,6 @@ function PackingListPage({ event, onBack }) {
         <div className="packing-list-title">
           <h2>{event.name}</h2>
           <p>{event.location} &middot; {formatDateRange(event.startDate, event.endDate)}</p>
-        </div>
-        <div className="packing-progress">
-          {packedCount} / {visibleItems.length} packed
         </div>
       </div>
 
@@ -113,12 +117,7 @@ function PackingListPage({ event, onBack }) {
         const categoryItems = visibleItems.filter(i => i.category === category)
         return (
           <section key={category} className="category-section">
-            <h3 className="category-heading">
-              {category}
-              <span className="category-count">
-                {categoryItems.filter(i => i.packed).length}/{categoryItems.length}
-              </span>
-            </h3>
+            <h3 className="category-heading">{category}</h3>
 
             <ul className="item-list">
               {categoryItems.map(item => (
@@ -131,6 +130,18 @@ function PackingListPage({ event, onBack }) {
                   />
                   <span className="item-name">{item.name}</span>
                   <div className="item-actions">
+                    <div className="item-qty">
+                      <button
+                        className="qty-btn"
+                        onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)}
+                        disabled={(item.quantity || 1) <= 1}
+                      >−</button>
+                      <span className="qty-value">{item.quantity || 1}</span>
+                      <button
+                        className="qty-btn"
+                        onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}
+                      >+</button>
+                    </div>
                     <button
                       className={`btn-buy ${item.needsToPurchase ? 'btn-buy--active' : ''}`}
                       onClick={() => togglePurchase(item.id)}

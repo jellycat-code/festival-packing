@@ -1,5 +1,6 @@
 // Master list of suggested items.
 // condition: optional function — if it returns false for this event, the item is skipped.
+// qty: number or function({ eventDays, buildDays, travelDays, totalDays }) => number
 
 const MASTER_LIST = [
   // IMPORTANT
@@ -16,7 +17,7 @@ const MASTER_LIST = [
   { name: 'Sturdy closed-toe work shoes', category: 'Build', condition: e => (e.buildDays || 0) > 0 },
   { name: 'Safety goggles', category: 'Build', condition: e => (e.buildDays || 0) > 0 },
   { name: 'Dust mask / respirator', category: 'Build', condition: e => (e.buildDays || 0) > 0 },
-  { name: 'Work clothes', category: 'Build', condition: e => (e.buildDays || 0) > 0 },
+  { name: 'Work clothes', category: 'Build', condition: e => (e.buildDays || 0) > 0, qty: ({ buildDays }) => buildDays },
   { name: 'Tool belt / tool bag', category: 'Build', condition: e => (e.buildDays || 0) > 0 },
 
   // Food
@@ -67,16 +68,21 @@ const MASTER_LIST = [
   { name: 'Lip balm with SPF', category: 'Personal Care' },
   { name: 'First aid kit', category: 'Personal Care' },
   { name: 'Pain reliever (ibuprofen / acetaminophen)', category: 'Personal Care' },
-  { name: 'Ear plugs', category: 'Personal Care' },
+  { name: 'Ear plugs', category: 'Personal Care', qty: ({ totalDays }) => totalDays },
 
   // Clothing & Accessories
-  { name: 'Underwear', category: 'Clothing & Accessories' },
-  { name: 'Socks', category: 'Clothing & Accessories' },
-  { name: 'Pants / shorts', category: 'Clothing & Accessories' },
-  { name: 'T-shirts', category: 'Clothing & Accessories' },
-  { name: 'Sweater / layers', category: 'Clothing & Accessories' },
+  // Underwear and socks: 1 per day across the full trip
+  { name: 'Underwear', category: 'Clothing & Accessories', qty: ({ totalDays }) => totalDays },
+  { name: 'Socks', category: 'Clothing & Accessories', qty: ({ totalDays }) => totalDays },
+  // T-shirts: 1 per day (you sweat)
+  { name: 'T-shirts', category: 'Clothing & Accessories', qty: ({ totalDays }) => totalDays },
+  // Pants can be worn multiple days
+  { name: 'Pants / shorts', category: 'Clothing & Accessories', qty: ({ totalDays }) => Math.max(2, Math.ceil(totalDays / 3)) },
+  // Layers can be worn multiple days
+  { name: 'Sweater / layers', category: 'Clothing & Accessories', qty: ({ totalDays }) => Math.max(1, Math.ceil(totalDays / 3)) },
   { name: 'Closed-toe shoes', category: 'Clothing & Accessories' },
-  { name: 'Festival / costume outfits', category: 'Clothing & Accessories' },
+  // Costume outfits are just for festival days, not travel or build
+  { name: 'Festival / costume outfits', category: 'Clothing & Accessories', qty: ({ eventDays }) => eventDays },
   { name: 'Hat / sun protection', category: 'Clothing & Accessories' },
   { name: 'Sunglasses', category: 'Clothing & Accessories' },
   { name: 'Rain jacket', category: 'Clothing & Accessories', condition: e => e.weatherConditions?.includes('Rain') },
@@ -95,13 +101,29 @@ const MASTER_LIST = [
   { name: 'Bike + lock', category: 'Misc' },
 ]
 
+function computeQty(item, { eventDays, buildDays, travelDays, totalDays }) {
+  if (typeof item.qty === 'function') {
+    return Math.max(1, item.qty({ eventDays, buildDays, travelDays, totalDays }))
+  }
+  return item.qty || 1
+}
+
 export function generateSuggestions(event) {
+  const start = new Date(event.startDate + 'T00:00:00')
+  const end = new Date(event.endDate + 'T00:00:00')
+  const eventDays = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1
+  const buildDays = event.buildDays || 0
+  const travelDays = (event.travelDaysTo || 0) + (event.travelDaysFrom || 0)
+  const totalDays = eventDays + buildDays + travelDays
+  const dayContext = { eventDays, buildDays, travelDays, totalDays }
+
   return MASTER_LIST
     .filter(item => !item.condition || item.condition(event))
     .map((item, index) => ({
       id: `s_${index}_${Date.now()}`,
       name: item.name,
       category: item.category,
+      quantity: computeQty(item, dayContext),
       packed: false,
       needsToPurchase: false,
       custom: false,
