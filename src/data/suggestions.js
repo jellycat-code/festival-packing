@@ -35,6 +35,7 @@ const MASTER_LIST = [
   { name: 'Ice', category: 'Food', singleton: true },
   { name: 'Reusable water bottle', category: 'Food', singleton: true },
   { name: 'Water', category: 'Food', singleton: true },
+  { name: 'Electrolytes', category: 'Food', singleton: true },
 
   // Cooking
   { name: 'Camp stove', category: 'Cooking', singleton: true },
@@ -59,6 +60,7 @@ const MASTER_LIST = [
   { name: 'Camp chair', category: 'Comfort', singleton: true },
   { name: 'Headlamp + extra batteries', category: 'Comfort', singleton: true },
   { name: 'Lantern', category: 'Comfort', singleton: true },
+  { name: 'Fan or air conditioner', category: 'Comfort', singleton: true, condition: e => e.weatherHigh !== null && e.weatherHigh > 75 },
 
   // Personal Care
   { name: 'Toothbrush + toothpaste', category: 'Personal Care', singleton: true },
@@ -87,10 +89,14 @@ const MASTER_LIST = [
   { name: 'Festival / costume outfits (night)', category: 'Clothing & Accessories', qty: ({ eventDays }) => eventDays },
   { name: 'Hat / sun protection', category: 'Clothing & Accessories', singleton: true },
   { name: 'Sunglasses', category: 'Clothing & Accessories', singleton: true },
+  { name: 'Umbrella', category: 'Clothing & Accessories', singleton: true },
   { name: 'Rain jacket', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherConditions?.includes('Rain') },
+  { name: 'Poncho', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherConditions?.includes('Rain') },
   { name: 'Heavy jacket / coat', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherLow !== null && e.weatherLow < 50 },
-  { name: 'Snow boots', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherConditions?.includes('Snow') },
-  { name: 'Bandana / buff', category: 'Clothing & Accessories', condition: e => e.weatherConditions?.includes('High Wind') || e.weatherConditions?.includes('Snow') },
+  { name: 'Warm hat / beanie', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherLow !== null && e.weatherLow < 50 },
+  { name: 'Gloves / mittens', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherLow !== null && e.weatherLow < 50 },
+  { name: 'Hand warmers', category: 'Clothing & Accessories', condition: e => e.weatherLow !== null && e.weatherLow < 45 },
+  { name: 'Bandana / buff', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherConditions?.includes('High Wind') },
 
   // Misc
   { name: 'Notebook + pen', category: 'Misc', singleton: true },
