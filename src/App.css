@@ -24,6 +24,18 @@
   overflow: visible;
 }
 
+.bg-hex-watermark {
+  position: fixed;
+  bottom: -40px;
+  left: -40px;
+  width: 320px;
+  height: 320px;
+  opacity: 0.055;
+  color: #01665e;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .logo {
   font-size: 1.25rem;
   font-weight: 600;
@@ -40,14 +52,19 @@
 }
 
 .footer-lnt {
-  font-size: 0.85rem;
-  color: #35978f;
+  display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #35978f;
+  padding: 0.4rem 1.5rem;
+  clip-path: polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%);
   cursor: pointer;
-  transition: color 0.15s;
+  transition: background-color 0.15s;
 }
 
 .footer-lnt:hover {
-  color: #01665e;
+  background-color: #01665e;
 }
 
 .main {
@@ -97,4 +114,24 @@
 
 .btn--danger:hover {
   background-color: #fdf0f0;
+}
+
+@media (max-width: 360px) {
+  .main {
+    padding: 2rem 1.25rem;
+  }
+}
+
+/* External site link icon — used on event card and packing list header */
+.event-site-link {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.4rem;
+  color: #8a847e;
+  vertical-align: middle;
+  transition: color 0.15s;
+}
+
+.event-site-link:hover {
+  color: #35978f;
 }

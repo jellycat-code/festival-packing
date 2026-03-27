@@ -1,5 +1,6 @@
 import { useState, useEffect, Fragment } from 'react'
 import { generateSuggestions, migrateSavedItems } from '../data/suggestions'
+import Modal from './Modal'
 import './PackingListPage.css'
 
 const CATEGORY_ORDER = [
@@ -20,7 +21,7 @@ function formatDateRange(startStr, endStr) {
   return `${start.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', { ...opts, year: 'numeric' })}`
 }
 
-function PackingListPage({ event, onBack, onMarkComplete }) {
+function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
   const storageKey = `fp_list_${event.id}`
   const notesKey = `fp_notes_${event.id}`
   const wishKey = `fp_wish_${event.id}`
@@ -36,7 +37,8 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
   })
 
   const [view, setView] = useState('packing')
-  const [feedbackMode, setFeedbackMode] = useState(false)
+  const [feedbackMode, setFeedbackMode] = useState(initialFeedbackMode)
+  const [showDoneModal, setShowDoneModal] = useState(false)
   const [addingTo, setAddingTo] = useState(null)       // category name
   const [addingSubTo, setAddingSubTo] = useState(null) // parent item id
   const [newItemName, setNewItemName] = useState('')
@@ -76,6 +78,11 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
     setItems(generateSuggestions(event))
   }
 
+  function startBlank() {
+    if (!window.confirm('This will clear your entire list so you can build your own from scratch. Continue?')) return
+    setItems([])
+  }
+
   function addItem(category) {
     if (!newItemName.trim()) return
     setItems(prev => [...prev, {
@@ -109,16 +116,13 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
     setWishItems(prev => prev.filter(i => i.id !== id))
   }
 
-  function handleMarkComplete() {
-    if (!window.confirm('Mark this event as complete? You can still view and add feedback to the packing list afterward.')) return
-    onMarkComplete(event.id)
-  }
-
   // --- Derived data ---
   const visibleItems = items.filter(i => !i.rejected)
   const rejectedItems = items.filter(i => i.rejected)
   const shoppingItems = visibleItems.filter(i => i.needsToPurchase)
-  const activeCategories = CATEGORY_ORDER.filter(cat => visibleItems.some(i => i.category === cat && !i.parentId))
+  const activeCategories = items.length === 0
+    ? CATEGORY_ORDER
+    : CATEGORY_ORDER.filter(cat => visibleItems.some(i => i.category === cat && !i.parentId))
   const shoppingCategories = CATEGORY_ORDER.filter(cat => shoppingItems.some(i => i.category === cat))
 
   // Whether to show a quantity stepper for an item
@@ -168,16 +172,25 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
 
       {/* Header */}
       <div className="packing-list-header">
-        <button className="btn-back" onClick={onBack}>← Back to Events</button>
+        <button className="btn-back" onClick={onBack}>← Back</button>
         <div className="packing-list-title">
-          <h2>{event.name}</h2>
+          <h2>
+            {event.name}
+            {event.website && (
+              <a href={event.website} target="_blank" rel="noopener noreferrer" className="event-site-link" aria-label="Event website">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M5 1.5H2C1.72 1.5 1.5 1.72 1.5 2V11C1.5 11.28 1.72 11.5 2 11.5H11C11.28 11.5 11.5 11.28 11.5 11V8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  <path d="M7.5 1.5H11.5V5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M11.5 1.5L6 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                </svg>
+              </a>
+            )}
+          </h2>
           <p>{event.location} &middot; {formatDateRange(event.startDate, event.endDate)}</p>
         </div>
         <div className="packing-list-header-actions">
-          {!isPast && (
-            <button className="btn-complete" onClick={handleMarkComplete}>Mark as Complete</button>
-          )}
           <button className="btn-reset" onClick={resetSuggestions}>Reset suggestions</button>
+          <button className="btn-reset" onClick={startBlank}>Build from scratch</button>
         </div>
       </div>
 
@@ -372,8 +385,24 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
               </ul>
             </section>
           )}
+
+          {!isPast && (
+            <div className="done-packing-section">
+              <button className="btn btn--primary" onClick={() => setShowDoneModal(true)}>
+                Done Packing
+              </button>
+            </div>
+          )}
         </>
       )}
+
+      <Modal isOpen={showDoneModal} onClose={() => setShowDoneModal(false)}>
+        <h3>You're all packed!</h3>
+        <p>Have an amazing time at <strong>{event.name}</strong>!</p>
+        <div className="modal-actions">
+          <button className="btn btn--primary" onClick={() => setShowDoneModal(false)}>Let's go!</button>
+        </div>
+      </Modal>
 
     </div>
   )

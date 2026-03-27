@@ -33,7 +33,7 @@ const MASTER_LIST = [
   { name: 'Spices / condiments', category: 'Food', singleton: true },
   { name: 'Cooler', category: 'Food', singleton: true },
   { name: 'Ice', category: 'Food', singleton: true },
-  { name: 'Reusable water bottle', category: 'Food', singleton: true },
+  { name: 'Hydration pack', category: 'Food', singleton: true },
   { name: 'Water', category: 'Food', singleton: true },
   { name: 'Electrolytes', category: 'Food', singleton: true },
 
@@ -95,7 +95,7 @@ const MASTER_LIST = [
   { name: 'Heavy jacket / coat', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherLow !== null && e.weatherLow < 50 },
   { name: 'Warm hat / beanie', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherLow !== null && e.weatherLow < 50 },
   { name: 'Gloves / mittens', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherLow !== null && e.weatherLow < 50 },
-  { name: 'Hand warmers', category: 'Clothing & Accessories', condition: e => e.weatherLow !== null && e.weatherLow < 45 },
+  { name: 'Hand warmers', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherLow !== null && e.weatherLow < 45 },
   { name: 'Bandana / buff', category: 'Clothing & Accessories', singleton: true, condition: e => e.weatherConditions?.includes('High Wind') },
 
   // Misc

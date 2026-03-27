@@ -18,6 +18,7 @@ function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
     return {
       name: '',
       location: '',
+      website: '',
       startDate: '',
       endDate: '',
       travelDaysTo: 0,
@@ -48,8 +49,11 @@ function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
 
   function handleSubmit(e) {
     e.preventDefault()
+    const rawUrl = form.website.trim()
+    const website = rawUrl && !rawUrl.match(/^https?:\/\//) ? 'https://' + rawUrl : rawUrl
     const updated = {
       ...form,
+      website,
       travelDaysTo: Number(form.travelDaysTo),
       travelDaysFrom: Number(form.travelDaysFrom),
       buildDays: Number(form.buildDays),
@@ -91,6 +95,18 @@ function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
             onChange={handleChange}
             placeholder="e.g. Black Rock Desert, NV"
             required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="website">Event Website <span className="form-label-optional">(optional)</span></label>
+          <input
+            id="website"
+            name="website"
+            type="text"
+            value={form.website}
+            onChange={handleChange}
+            placeholder="e.g. burningman.org"
           />
         </div>
 
