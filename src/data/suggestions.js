@@ -105,6 +105,17 @@ function computeQty(item, { eventDays, buildDays, travelDays, totalDays }) {
   return item.qty || 1
 }
 
+// Applies current singleton flags to items already saved in localStorage.
+// This way old lists don't need a full reset just to get the right UI.
+export function migrateSavedItems(savedItems) {
+  return savedItems.map(item => {
+    if (item.parentId || item.custom) return item
+    const master = MASTER_LIST.find(m => m.name === item.name)
+    if (master?.singleton && !item.singleton) return { ...item, singleton: true }
+    return item
+  })
+}
+
 export function generateSuggestions(event) {
   const start = new Date(event.startDate + 'T00:00:00')
   const end = new Date(event.endDate + 'T00:00:00')

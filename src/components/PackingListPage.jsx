@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from 'react'
-import { generateSuggestions } from '../data/suggestions'
+import { generateSuggestions, migrateSavedItems } from '../data/suggestions'
 import './PackingListPage.css'
 
 const CATEGORY_ORDER = [
@@ -27,7 +27,7 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
 
   const [items, setItems] = useState(() => {
     const saved = localStorage.getItem(storageKey)
-    return saved ? JSON.parse(saved) : generateSuggestions(event)
+    return saved ? migrateSavedItems(JSON.parse(saved)) : generateSuggestions(event)
   })
   const [notes, setNotes] = useState(() => localStorage.getItem(notesKey) || '')
   const [wishItems, setWishItems] = useState(() => {
@@ -255,7 +255,15 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
                         {/* Parent row */}
                         <li className={`item-row ${item.packed ? 'item-row--packed' : ''}`}>
                           <input type="checkbox" checked={item.packed} onChange={() => togglePacked(item.id)} className="item-checkbox" />
-                          <span className="item-name">{item.name}</span>
+                          <div className="item-main">
+                            <span className="item-name">{item.name}</span>
+                            {!feedbackMode && (
+                              <button
+                                className="btn-add-sub"
+                                onClick={() => { setAddingSubTo(item.id); setAddingTo(null) }}
+                              >+ sub-item</button>
+                            )}
+                          </div>
                           <div className="item-actions">{renderActions(item)}</div>
                         </li>
 
@@ -268,32 +276,24 @@ function PackingListPage({ event, onBack, onMarkComplete }) {
                           </li>
                         ))}
 
-                        {/* Add sub-item */}
-                        {!feedbackMode && (
-                          addingSubTo === item.id ? (
-                            <li className="item-row item-row--add-sub-form">
-                              <div className="add-item-form add-item-form--sub">
-                                <input
-                                  type="text" value={newSubItemName}
-                                  onChange={e => setNewSubItemName(e.target.value)}
-                                  placeholder="Sub-item name"
-                                  onKeyDown={e => {
-                                    if (e.key === 'Enter') addSubItem(item.id)
-                                    if (e.key === 'Escape') { setAddingSubTo(null); setNewSubItemName('') }
-                                  }}
-                                  autoFocus
-                                />
-                                <button className="btn btn--primary" onClick={() => addSubItem(item.id)}>Add</button>
-                                <button className="btn btn--secondary" onClick={() => { setAddingSubTo(null); setNewSubItemName('') }}>Cancel</button>
-                              </div>
-                            </li>
-                          ) : (
-                            <li className="sub-item-action">
-                              <button className="btn-add-sub" onClick={() => { setAddingSubTo(item.id); setAddingTo(null) }}>
-                                + sub-item
-                              </button>
-                            </li>
-                          )
+                        {/* Add sub-item form */}
+                        {!feedbackMode && addingSubTo === item.id && (
+                          <li className="item-row item-row--add-sub-form">
+                            <div className="add-item-form add-item-form--sub">
+                              <input
+                                type="text" value={newSubItemName}
+                                onChange={e => setNewSubItemName(e.target.value)}
+                                placeholder="Sub-item name"
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') addSubItem(item.id)
+                                  if (e.key === 'Escape') { setAddingSubTo(null); setNewSubItemName('') }
+                                }}
+                                autoFocus
+                              />
+                              <button className="btn btn--primary" onClick={() => addSubItem(item.id)}>Add</button>
+                              <button className="btn btn--secondary" onClick={() => { setAddingSubTo(null); setNewSubItemName('') }}>Cancel</button>
+                            </div>
+                          </li>
                         )}
                       </Fragment>
                     )
