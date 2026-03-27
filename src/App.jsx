@@ -1,36 +1,26 @@
 import { useState, useEffect } from 'react'
 import HomePage from './components/HomePage'
-
-const HEX_PALETTE = ['#543005', '#8c510a', '#bf812d', '#dfc27d', '#c7eae5', '#80cdc1', '#35978f', '#01665e']
-
-function buildHexBg(totalWidth, totalHeight) {
-  const s = 20
-  const hexW = +(s * Math.sqrt(3)).toFixed(2)
-  const rowH = s * 1.5
-  const cols = Math.ceil(totalWidth / hexW) + 2
-  const rows = Math.ceil(totalHeight / rowH) + 2
-  let polys = ''
-  for (let r = -1; r < rows; r++) {
-    for (let c = -1; c < cols; c++) {
-      const cx = c * hexW + (r % 2 !== 0 ? hexW / 2 : 0)
-      const cy = r * rowH + s
-      const t = Math.max(0, Math.min(1, cx / totalWidth))
-      const noise = (Math.abs(r * 7 + c * 13) % 5) / 14
-      const idx = Math.min(HEX_PALETTE.length - 1, Math.max(0, Math.round((t + noise - 0.15) * (HEX_PALETTE.length - 1))))
-      const pts = Array.from({ length: 6 }, (_, i) => {
-        const a = (Math.PI / 3) * i - Math.PI / 6
-        return `${(cx + s * Math.cos(a)).toFixed(1)},${(cy + s * Math.sin(a)).toFixed(1)}`
-      }).join(' ')
-      polys += `<polygon points="${pts}" fill="${HEX_PALETTE[idx]}" stroke="#f5f2ee" stroke-width="1"/>`
-    }
-  }
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${totalWidth}' height='${totalHeight}'>${polys}</svg>`
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
-}
 import CreateEventPage from './components/CreateEventPage'
 import PackingListPage from './components/PackingListPage'
 import LNTPage from './components/LNTPage'
 import './App.css'
+
+// Decorative hexagon accents in the header
+function hexPoints(cx, cy, r) {
+  return Array.from({ length: 6 }, (_, i) => {
+    const a = (Math.PI / 3) * i - Math.PI / 6
+    return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`
+  }).join(' ')
+}
+
+const HEADER_HEXES = [
+  { cx: 1390, cy: 32, r: 52 },  // large, right edge
+  { cx: 1262, cy: -8, r: 40 },  // medium-large, clips top
+  { cx: 1325, cy: 76, r: 36 },  // medium, clips bottom
+  { cx: 1148, cy: 16, r: 22 },  // small, upper
+  { cx: 1195, cy: 54, r: 15 },  // tiny, lower
+  { cx: 905,  cy: -6, r: 28 },  // medium, center area, clips top
+]
 
 const SAMPLE_EVENTS = [
   {
@@ -63,12 +53,6 @@ const SAMPLE_EVENTS = [
 ]
 
 function App() {
-  const [headerBg, setHeaderBg] = useState('')
-
-  useEffect(() => {
-    setHeaderBg(buildHexBg(Math.max(window.innerWidth, 1440), 64))
-  }, [])
-
   const [events, setEvents] = useState(() => {
     const saved = localStorage.getItem('fp_events')
     return saved ? JSON.parse(saved) : SAMPLE_EVENTS
@@ -115,7 +99,13 @@ function App() {
 
   return (
     <div className="app">
-      <header className="header" style={{ backgroundImage: headerBg }}>
+      <header className="header">
+        <svg className="header-hexes" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          {HEADER_HEXES.map((h, i) => (
+            <polygon key={i} points={hexPoints(h.cx, h.cy, h.r)}
+              fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" />
+          ))}
+        </svg>
         <h1 className="logo" onClick={() => setCurrentPage('home')}>
           Festival Packing
         </h1>
