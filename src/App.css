@@ -33,21 +33,21 @@
   text-shadow: 0 1px 3px rgba(0,0,0,0.4);
 }
 
-.nav {
-  display: flex;
-  gap: 2rem;
+.footer {
+  padding: 1.25rem 2rem;
+  text-align: center;
+  border-top: 1px solid #e0dbd4;
 }
 
-.nav a {
-  font-size: 0.95rem;
-  color: rgba(255,255,255,0.85);
+.footer-lnt {
+  font-size: 0.85rem;
+  color: #35978f;
   cursor: pointer;
-  transition: color 0.2s;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  transition: color 0.15s;
 }
 
-.nav a:hover {
-  color: #ffffff;
+.footer-lnt:hover {
+  color: #01665e;
 }
 
 .main {

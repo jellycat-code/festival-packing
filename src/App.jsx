@@ -109,16 +109,11 @@ function App() {
         <h1 className="logo" onClick={() => setCurrentPage('home')}>
           Festival Packing
         </h1>
-        <nav className="nav">
-          <a onClick={() => setCurrentPage('home')}>My Events</a>
-          <a onClick={() => setCurrentPage('create')}>New Event</a>
-          <a onClick={() => setCurrentPage('lnt')}>Leave No Trace</a>
-        </nav>
       </header>
 
       <main className="main">
         {currentPage === 'home' && (
-          <HomePage events={events} onOpenEvent={handleOpenEvent} onEditEvent={handleEditEvent} onDeleteEvent={handleDeleteEvent} />
+          <HomePage events={events} onOpenEvent={handleOpenEvent} onEditEvent={handleEditEvent} onDeleteEvent={handleDeleteEvent} onNewEvent={() => setCurrentPage('create')} />
         )}
         {currentPage === 'create' && (
           <CreateEventPage
@@ -142,6 +137,10 @@ function App() {
           />
         )}
       </main>
+
+      <footer className="footer">
+        <a className="footer-lnt" onClick={() => setCurrentPage('lnt')}>Leave No Trace</a>
+      </footer>
     </div>
   )
 }

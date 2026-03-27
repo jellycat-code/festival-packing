@@ -1,7 +1,7 @@
 import EventCard from './EventCard'
 import './HomePage.css'
 
-function HomePage({ events, onOpenEvent, onEditEvent, onDeleteEvent }) {
+function HomePage({ events, onOpenEvent, onEditEvent, onDeleteEvent, onNewEvent }) {
   const byDate = (a, b) => new Date(a.startDate) - new Date(b.startDate)
   const activeEvents = events.filter(e => e.status === 'planning').sort(byDate)
   const pastEvents = events.filter(e => e.status === 'past').sort(byDate)
@@ -9,7 +9,10 @@ function HomePage({ events, onOpenEvent, onEditEvent, onDeleteEvent }) {
   return (
     <div className="home-page">
       <section className="events-section">
-        <h2>Upcoming Events</h2>
+        <div className="section-header">
+          <h2>Upcoming Events</h2>
+          <button className="btn btn--primary" onClick={onNewEvent}>+ New Event</button>
+        </div>
         {activeEvents.length === 0 ? (
           <p className="empty-state">No upcoming events. Hit "New Event" to get started!</p>
         ) : (
