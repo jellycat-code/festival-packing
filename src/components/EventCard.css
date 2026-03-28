@@ -8,18 +8,19 @@
   flex-direction: column;
   gap: 1rem;
   transition: box-shadow 0.2s;
+  overflow: hidden;
 }
 
 .event-card__delete {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 0.25rem;
+  right: 0.25rem;
   background: none;
   border: none;
   color: #c0bab4;
   font-size: 0.9rem;
   line-height: 1;
-  padding: 0.2rem 0.35rem;
+  padding: 0.55rem 0.65rem;
   cursor: pointer;
   border-radius: 4px;
   transition: color 0.15s, background-color 0.15s;
@@ -60,4 +61,16 @@
   margin-top: auto;
   display: flex;
   gap: 0.5rem;
+}
+
+.event-card__progress-track {
+  margin: 0 -1.25rem -1.25rem;
+  height: 4px;
+  background: #e0dbd4;
+}
+
+.event-card__progress-fill {
+  height: 100%;
+  background: #01665e;
+  transition: width 0.3s ease;
 }

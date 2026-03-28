@@ -10,7 +10,7 @@ function HomePage({ events, onOpenEvent, onEditEvent, onDeleteEvent, onNewEvent,
   const now = new Date()
   const weatherReminders = activeEvents.filter(e => {
     const daysUntil = Math.ceil((new Date(e.startDate + 'T00:00:00') - now) / (1000 * 60 * 60 * 24))
-    return daysUntil >= 0 && daysUntil <= 5
+    return daysUntil >= 0 && daysUntil < 5
   })
   function daysUntil(dateStr) {
     return Math.ceil((new Date(dateStr + 'T00:00:00') - now) / (1000 * 60 * 60 * 24))

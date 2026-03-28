@@ -1,4 +1,20 @@
+import { useState, useMemo } from 'react'
+import Modal from './Modal'
 import './EventCard.css'
+
+function getPackingProgress(eventId) {
+  try {
+    const saved = localStorage.getItem(`fp_list_${eventId}`)
+    if (!saved) return null
+    const items = JSON.parse(saved)
+    const countable = items.filter(i => !i.rejected && !i.parentId)
+    if (countable.length === 0) return null
+    const packed = countable.filter(i => i.packed).length
+    return { packed, total: countable.length }
+  } catch {
+    return null
+  }
+}
 
 function formatDateRange(startStr, endStr) {
   const opts = { month: 'short', day: 'numeric' }
@@ -10,14 +26,12 @@ function formatDateRange(startStr, endStr) {
 }
 
 function EventCard({ event, onOpen, onEdit, onDelete, isPast }) {
-  function handleDelete() {
-    if (!window.confirm(`Delete "${event.name}"? This cannot be undone.`)) return
-    onDelete(event)
-  }
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const progress = useMemo(() => getPackingProgress(event.id), [event.id])
 
   return (
     <div className={`event-card ${isPast ? 'event-card--past' : ''}`}>
-      <button className="event-card__delete" onClick={handleDelete} aria-label="Delete event">✕</button>
+      <button className="event-card__delete" onClick={() => setShowDeleteConfirm(true)} aria-label="Delete event">✕</button>
       <div className="event-card__body">
         <h3 className="event-card__name">
           {event.name}
@@ -44,6 +58,24 @@ function EventCard({ event, onOpen, onEdit, onDelete, isPast }) {
           Edit Event
         </button>
       </div>
+
+      {progress !== null && (
+        <div className="event-card__progress-track">
+          <div
+            className="event-card__progress-fill"
+            style={{ width: `${(progress.packed / progress.total) * 100}%` }}
+          />
+        </div>
+      )}
+
+      <Modal isOpen={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)} labelId="delete-confirm-title">
+        <h3 id="delete-confirm-title">Delete "{event.name}"?</h3>
+        <p>This will permanently remove the event and its packing list. This cannot be undone.</p>
+        <div className="modal-actions">
+          <button className="btn btn--danger" onClick={() => { setShowDeleteConfirm(false); onDelete(event) }}>Delete</button>
+          <button className="btn btn--secondary" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+        </div>
+      </Modal>
     </div>
   )
 }

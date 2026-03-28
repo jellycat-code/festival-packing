@@ -33,40 +33,14 @@ const BG_HEXES = [
   { cx: 175, cy: 75,  r: 38 },
 ]
 
-const SAMPLE_EVENTS = [
-  {
-    id: 1,
-    name: 'Burning Man 2026',
-    location: 'Black Rock Desert, NV',
-    startDate: '2026-08-30',
-    endDate: '2026-09-07',
-    travelDaysTo: 2,
-    travelDaysFrom: 2,
-    buildDays: 3,
-    weatherHigh: 100,
-    weatherLow: 45,
-    weatherConditions: ['High Wind'],
-    status: 'planning',
-  },
-  {
-    id: 2,
-    name: 'Arise Music Festival',
-    location: 'Loveland, CO',
-    startDate: '2025-08-08',
-    endDate: '2025-08-10',
-    travelDaysTo: 0,
-    travelDaysFrom: 0,
-    weatherHigh: 88,
-    weatherLow: 55,
-    weatherConditions: [],
-    status: 'past',
-  },
-]
-
 function App() {
   const [events, setEvents] = useState(() => {
-    const saved = localStorage.getItem('fp_events')
-    return saved ? JSON.parse(saved) : SAMPLE_EVENTS
+    try {
+      const saved = localStorage.getItem('fp_events')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
   })
   const [currentPage, setCurrentPage] = useState('home')
   const [editingEvent, setEditingEvent] = useState(null)
@@ -146,7 +120,7 @@ function App() {
           ))}
         </svg>
         <h1 className="logo" onClick={() => setCurrentPage('home')}>
-          Festival Packing
+          DustReady
         </h1>
       </header>
 

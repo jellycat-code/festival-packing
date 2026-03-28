@@ -6,6 +6,8 @@ const WEATHER_CONDITIONS = ['Rain', 'Snow', 'High Wind']
 function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
   const editing = Boolean(initialEvent)
 
+  const [dateError, setDateError] = useState('')
+
   const [form, setForm] = useState(() => {
     if (initialEvent) {
       return {
@@ -32,6 +34,7 @@ function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
 
   function handleChange(e) {
     const { name, value } = e.target
+    if (name === 'startDate' || name === 'endDate') setDateError('')
     setForm(prev => ({ ...prev, [name]: value }))
   }
 
@@ -49,6 +52,10 @@ function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
 
   function handleSubmit(e) {
     e.preventDefault()
+    if (form.startDate && form.endDate && form.endDate < form.startDate) {
+      setDateError('End date must be on or after the start date.')
+      return
+    }
     const rawUrl = form.website.trim()
     const website = rawUrl && !rawUrl.match(/^https?:\/\//) ? 'https://' + rawUrl : rawUrl
     const updated = {
@@ -132,6 +139,7 @@ function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
               onChange={handleChange}
               required
             />
+            {dateError && <p className="form-error" role="alert">{dateError}</p>}
           </div>
         </div>
 

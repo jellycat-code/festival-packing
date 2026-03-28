@@ -122,6 +122,13 @@
   }
 }
 
+/* Focus visible — keyboard navigation rings */
+:focus-visible {
+  outline: 2px solid #35978f;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
 /* External site link icon — used on event card and packing list header */
 .event-site-link {
   display: inline-flex;

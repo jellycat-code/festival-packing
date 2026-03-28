@@ -5,10 +5,10 @@ import './PackingListPage.css'
 
 const CATEGORY_ORDER = [
   'IMPORTANT',
-  'Build',
-  'Food',
-  'Cooking',
+  'Infrastructure',
   'Comfort',
+  'Food',
+  'Cooking & Eating',
   'Personal Care',
   'Clothing & Accessories',
   'Misc',
@@ -26,19 +26,30 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
   const notesKey = `fp_notes_${event.id}`
   const wishKey = `fp_wish_${event.id}`
 
+  const [showChoice, setShowChoice] = useState(() => !localStorage.getItem(storageKey))
   const [items, setItems] = useState(() => {
-    const saved = localStorage.getItem(storageKey)
-    return saved ? migrateSavedItems(JSON.parse(saved)) : generateSuggestions(event)
+    try {
+      const saved = localStorage.getItem(storageKey)
+      return saved ? migrateSavedItems(JSON.parse(saved)) : []
+    } catch {
+      return []
+    }
   })
   const [notes, setNotes] = useState(() => localStorage.getItem(notesKey) || '')
   const [wishItems, setWishItems] = useState(() => {
-    const saved = localStorage.getItem(wishKey)
-    return saved ? JSON.parse(saved) : []
+    try {
+      const saved = localStorage.getItem(wishKey)
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
   })
 
   const [view, setView] = useState('packing')
   const [feedbackMode, setFeedbackMode] = useState(initialFeedbackMode)
+  const [filterUnpacked, setFilterUnpacked] = useState(false)
   const [showDoneModal, setShowDoneModal] = useState(false)
+  const [confirmModal, setConfirmModal] = useState(null) // { title, message, onConfirm }
   const [addingTo, setAddingTo] = useState(null)       // category name
   const [addingSubTo, setAddingSubTo] = useState(null) // parent item id
   const [newItemName, setNewItemName] = useState('')
@@ -73,14 +84,23 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
       i.id === id ? { ...i, feedback: i.feedback === feedback ? null : feedback } : i
     ))
   }
+  function setItemFeedbackQty(id, qty) {
+    setItems(prev => prev.map(i => i.id === id ? { ...i, feedbackQty: Math.max(1, qty) } : i))
+  }
   function resetSuggestions() {
-    if (!window.confirm('This will wipe your current list and start fresh with new suggestions. Any items you added or changes you made will be lost. Continue?')) return
-    setItems(generateSuggestions(event))
+    setConfirmModal({
+      title: 'Reset suggestions?',
+      message: 'This will wipe your current list and start fresh with new suggestions. Any items you added or changes you made will be lost.',
+      onConfirm: () => setItems(generateSuggestions(event)),
+    })
   }
 
   function startBlank() {
-    if (!window.confirm('This will clear your entire list so you can build your own from scratch. Continue?')) return
-    setItems([])
+    setConfirmModal({
+      title: 'Build from scratch?',
+      message: 'This will clear your entire list so you can build your own. All current items will be removed.',
+      onConfirm: () => setItems([]),
+    })
   }
 
   function addItem(category) {
@@ -120,9 +140,11 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
   const visibleItems = items.filter(i => !i.rejected)
   const rejectedItems = items.filter(i => i.rejected)
   const shoppingItems = visibleItems.filter(i => i.needsToPurchase)
+  const unpackedCount = visibleItems.filter(i => !i.packed).length
+  const displayItems = filterUnpacked ? visibleItems.filter(i => !i.packed) : visibleItems
   const activeCategories = items.length === 0
     ? CATEGORY_ORDER
-    : CATEGORY_ORDER.filter(cat => visibleItems.some(i => i.category === cat && !i.parentId))
+    : CATEGORY_ORDER.filter(cat => displayItems.some(i => i.category === cat && !i.parentId))
   const shoppingCategories = CATEGORY_ORDER.filter(cat => shoppingItems.some(i => i.category === cat))
 
   // Whether to show a quantity stepper for an item
@@ -134,18 +156,28 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
   }
 
   // Render actions for a single item row
-  function renderActions(item) {
+  function renderActions(item, displayName) {
+    const label = displayName || item.name
     if (feedbackMode) {
       return (
         <>
           <button
             className={`btn-feedback ${item.feedback === 'didntNeed' ? 'btn-feedback--didnt-need' : ''}`}
             onClick={() => setItemFeedback(item.id, 'didntNeed')}
+            aria-pressed={item.feedback === 'didntNeed'}
           >Didn't need</button>
           <button
             className={`btn-feedback ${item.feedback === 'needMore' ? 'btn-feedback--need-more' : ''}`}
             onClick={() => setItemFeedback(item.id, 'needMore')}
+            aria-pressed={item.feedback === 'needMore'}
           >Need more</button>
+          {item.feedback === 'needMore' && (
+            <div className="feedback-qty" role="group" aria-label={`Extra quantity needed for ${label}`}>
+              <button className="qty-btn" onClick={() => setItemFeedbackQty(item.id, (item.feedbackQty || 1) - 1)} disabled={(item.feedbackQty || 1) <= 1} aria-label="Decrease extra quantity">−</button>
+              <span className="qty-value">+{item.feedbackQty || 1}</span>
+              <button className="qty-btn" onClick={() => setItemFeedbackQty(item.id, (item.feedbackQty || 1) + 1)} aria-label="Increase extra quantity">+</button>
+            </div>
+          )}
         </>
       )
     }
@@ -153,16 +185,19 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
       <>
         {showQty(item) && (
           <div className="item-qty">
-            <button className="qty-btn" onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)} disabled={(item.quantity || 1) <= 1}>−</button>
-            <span className="qty-value">{item.quantity || 1}</span>
-            <button className="qty-btn" onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}>+</button>
+            <button className="qty-btn" onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)} disabled={(item.quantity || 1) <= 1} aria-label={`Decrease quantity of ${label}`}>−</button>
+            <span className="qty-value" aria-live="polite">{item.quantity || 1}</span>
+            <button className="qty-btn" onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)} aria-label={`Increase quantity of ${label}`}>+</button>
           </div>
         )}
-        <button
-          className={`btn-buy ${item.needsToPurchase ? 'btn-buy--active' : ''}`}
-          onClick={() => togglePurchase(item.id)}
-        >{item.needsToPurchase ? 'Buy ✓' : 'Buy?'}</button>
-        <button className="btn-remove" onClick={() => removeItem(item.id)}>✕</button>
+        {item.category !== 'IMPORTANT' && (
+          <button
+            className={`btn-buy ${item.needsToPurchase ? 'btn-buy--active' : ''}`}
+            onClick={() => togglePurchase(item.id)}
+            aria-pressed={item.needsToPurchase}
+          >{item.needsToPurchase ? 'Buy ✓' : 'Buy?'}</button>
+        )}
+        <button className="btn-remove" onClick={() => removeItem(item.id)} aria-label={`Remove ${label}`}>✕</button>
       </>
     )
   }
@@ -194,6 +229,31 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
         </div>
       </div>
 
+      {/* First-open choice */}
+      {showChoice && (
+        <div className="list-choice">
+          <p className="list-choice__heading">How do you want to start?</p>
+          <div className="list-choice__options">
+            <button
+              className="list-choice__option"
+              onClick={() => { setItems(generateSuggestions(event)); setShowChoice(false) }}
+            >
+              <span className="list-choice__option-title">Suggest a packing list</span>
+              <span className="list-choice__option-desc">We'll generate a list based on your event details and past trips.</span>
+            </button>
+            <button
+              className="list-choice__option"
+              onClick={() => setShowChoice(false)}
+            >
+              <span className="list-choice__option-title">Start blank</span>
+              <span className="list-choice__option-desc">Build your own list from scratch.</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!showChoice && (<>
+
       {/* Tabs */}
       <div className="view-tabs">
         <button className={`view-tab ${view === 'packing' ? 'view-tab--active' : ''}`} onClick={() => setView('packing')}>
@@ -203,6 +263,15 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
           Shopping List
           {shoppingItems.length > 0 && <span className="tab-badge">{shoppingItems.length}</span>}
         </button>
+        {view === 'packing' && !isPast && !feedbackMode && (
+          <button
+            className={`btn-filter-remaining ${filterUnpacked ? 'btn-filter-remaining--active' : ''}`}
+            onClick={() => setFilterUnpacked(prev => !prev)}
+            aria-pressed={filterUnpacked}
+          >
+            {filterUnpacked ? `Remaining (${unpackedCount})` : 'Show remaining'}
+          </button>
+        )}
       </div>
 
       {/* ── SHOPPING LIST VIEW ── */}
@@ -219,7 +288,7 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
               <ul className="item-list">
                 {shoppingItems.filter(i => i.category === category).map(item => (
                   <li key={item.id} className={`item-row ${item.parentId ? 'item-row--child' : ''}`}>
-                    <input type="checkbox" className="item-checkbox" onChange={() => togglePurchase(item.id)} />
+                    <input type="checkbox" className="item-checkbox" onChange={() => togglePurchase(item.id)} aria-label={`Mark ${item.name} as purchased`} />
                     <span className="item-name">{item.name}</span>
                     <span className="qty-label">×{item.quantity || 1}</span>
                   </li>
@@ -256,20 +325,21 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
           </div>
 
           {activeCategories.map(category => {
-            const topLevel = visibleItems.filter(i => i.category === category && !i.parentId)
+            const topLevel = displayItems.filter(i => i.category === category && !i.parentId)
             return (
               <section key={category} className="category-section">
                 <h3 className="category-heading">{category}</h3>
                 <ul className="item-list">
                   {topLevel.map(item => {
-                    const children = visibleItems.filter(i => i.parentId === item.id)
+                    const children = displayItems.filter(i => i.parentId === item.id)
                     return (
                       <Fragment key={item.id}>
                         {/* Parent row */}
                         <li className={`item-row ${item.packed ? 'item-row--packed' : ''}`}>
-                          <input type="checkbox" checked={item.packed} onChange={() => togglePacked(item.id)} className="item-checkbox" />
+                          <input type="checkbox" checked={item.packed} onChange={() => togglePacked(item.id)} className="item-checkbox" aria-label={`Mark ${item.label || item.name} as packed`} />
                           <div className="item-main">
-                            <span className="item-name">{item.name}</span>
+                            <span className="item-name">{item.label || item.name}</span>
+                            {item.note && <span className="item-note">{item.note}</span>}
                             {!feedbackMode && (
                               <button
                                 className="btn-add-sub"
@@ -277,15 +347,15 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
                               >+ sub-item</button>
                             )}
                           </div>
-                          <div className="item-actions">{renderActions(item)}</div>
+                          <div className="item-actions">{renderActions(item, item.label || item.name)}</div>
                         </li>
 
                         {/* Children */}
                         {children.map(child => (
                           <li key={child.id} className={`item-row item-row--child ${child.packed ? 'item-row--packed' : ''}`}>
-                            <input type="checkbox" checked={child.packed} onChange={() => togglePacked(child.id)} className="item-checkbox" />
+                            <input type="checkbox" checked={child.packed} onChange={() => togglePacked(child.id)} className="item-checkbox" aria-label={`Mark ${child.name} as packed`} />
                             <span className="item-name">{child.name}</span>
-                            <div className="item-actions">{renderActions(child)}</div>
+                            <div className="item-actions">{renderActions(child, child.name)}</div>
                           </li>
                         ))}
 
@@ -354,7 +424,7 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
                   {wishItems.map(item => (
                     <li key={item.id} className="item-row">
                       <span className="item-name">{item.name}</span>
-                      <button className="btn-remove" onClick={() => removeWishItem(item.id)}>✕</button>
+                      <button className="btn-remove" onClick={() => removeWishItem(item.id)} aria-label={`Remove ${item.name} from wish list`}>✕</button>
                     </li>
                   ))}
                 </ul>
@@ -396,11 +466,22 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
         </>
       )}
 
-      <Modal isOpen={showDoneModal} onClose={() => setShowDoneModal(false)}>
-        <h3>You're all packed!</h3>
+      </>)} {/* end !showChoice */}
+
+      <Modal isOpen={showDoneModal} onClose={() => setShowDoneModal(false)} labelId="done-modal-title">
+        <h3 id="done-modal-title">You're all packed!</h3>
         <p>Have an amazing time at <strong>{event.name}</strong>!</p>
         <div className="modal-actions">
           <button className="btn btn--primary" onClick={() => setShowDoneModal(false)}>Let's go!</button>
+        </div>
+      </Modal>
+
+      <Modal isOpen={confirmModal !== null} onClose={() => setConfirmModal(null)} labelId="confirm-modal-title">
+        <h3 id="confirm-modal-title">{confirmModal?.title}</h3>
+        <p>{confirmModal?.message}</p>
+        <div className="modal-actions">
+          <button className="btn btn--danger" onClick={() => { confirmModal.onConfirm(); setConfirmModal(null) }}>Continue</button>
+          <button className="btn btn--secondary" onClick={() => setConfirmModal(null)}>Cancel</button>
         </div>
       </Modal>
 

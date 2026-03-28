@@ -99,6 +99,12 @@ input[type="date"]:focus {
   color: #8a847e;
 }
 
+.form-error {
+  font-size: 0.85rem;
+  color: #b94040;
+  margin-top: 0.1rem;
+}
+
 .form-actions {
   display: flex;
   gap: 0.75rem;
