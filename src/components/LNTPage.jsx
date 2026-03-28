@@ -82,9 +82,10 @@ const PRINCIPLES = [
   },
 ]
 
-function LNTPage() {
+function LNTPage({ onBack }) {
   return (
     <div className="lnt-page">
+      <button className="btn-back" onClick={onBack} aria-label="Back">←</button>
       <div className="lnt-header">
         <h2>Leave No Trace</h2>
         <p>Seven principles for being a responsible guest — at festivals, burns, and beyond.</p>

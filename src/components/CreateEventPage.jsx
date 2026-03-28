@@ -76,6 +76,7 @@ function CreateEventPage({ onAdd, onSave, onCancel, initialEvent }) {
 
   return (
     <div className="create-event-page">
+      {editing && <button className="btn-back" onClick={onCancel} aria-label="Back">←</button>}
       <h2>{editing ? 'Edit Event' : 'New Event'}</h2>
       <form className="event-form" onSubmit={handleSubmit}>
 

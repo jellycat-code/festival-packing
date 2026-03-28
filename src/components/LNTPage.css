@@ -4,6 +4,10 @@
   gap: 2rem;
 }
 
+.lnt-page .btn-back {
+  align-self: flex-start;
+}
+
 .lnt-header h2 {
   font-size: 1.5rem;
   font-weight: 600;
@@ -12,7 +16,7 @@
 
 .lnt-header p {
   font-size: 0.95rem;
-  color: #5a5550;
+  color: var(--text-mid);
 }
 
 .lnt-principles {
@@ -22,8 +26,8 @@
 }
 
 .lnt-card {
-  background: #ffffff;
-  border: 1px solid #e0dbd4;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 1.25rem;
 }
@@ -38,7 +42,7 @@
 .lnt-number {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #c8c2bc;
+  color: var(--text-ghost);
   letter-spacing: 0.05em;
   padding-top: 0.2rem;
   flex-shrink: 0;
@@ -48,13 +52,13 @@
 .lnt-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #2a2a2a;
+  color: var(--text);
   margin-bottom: 0.2rem;
 }
 
 .lnt-summary {
   font-size: 0.875rem;
-  color: #5a5550;
+  color: var(--text-mid);
   font-style: italic;
 }
 
@@ -78,12 +82,12 @@
   content: '—';
   position: absolute;
   left: -0.25rem;
-  color: #c8c2bc;
+  color: var(--text-ghost);
 }
 
 .lnt-footer {
   font-size: 0.82rem;
-  color: #aaa49e;
+  color: var(--text-faint);
   text-align: center;
   padding-bottom: 1rem;
 }

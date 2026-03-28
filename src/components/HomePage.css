@@ -22,17 +22,12 @@
     gap: 2.5rem;
     margin-bottom: 0.5rem;
   }
-
-  .section-header .btn--primary {
-    margin-right: -0.75rem;
-  }
-
 }
 
 .events-section h2 {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #8a847e;
+  color: var(--text-light);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 1rem;
@@ -40,12 +35,12 @@
 
 .event-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 1rem;
 }
 
 .empty-state {
-  color: #8a847e;
+  color: var(--text-light);
   font-size: 0.95rem;
 }
 
@@ -91,7 +86,7 @@
 
 .reminder-banner--weather {
   background: #fdf4e7;
-  border-color: #bf812d;
+  border-color: var(--amber);
 }
 
 .reminder-banner--weather .reminder-banner__text {

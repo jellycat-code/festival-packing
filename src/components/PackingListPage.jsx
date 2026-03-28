@@ -1,30 +1,15 @@
 import { useState, useEffect, Fragment } from 'react'
-import { generateSuggestions, migrateSavedItems } from '../data/suggestions'
+import { generateSuggestions, migrateSavedItems, CATEGORY_ORDER } from '../data/suggestions'
 import Modal from './Modal'
+import ExternalLinkIcon from './ExternalLinkIcon'
+import { formatDateRange } from '../utils/format'
+import { listKey, notesKey as makeNotesKey, wishKey as makeWishKey } from '../utils/storageKeys'
 import './PackingListPage.css'
 
-const CATEGORY_ORDER = [
-  'IMPORTANT',
-  'Infrastructure',
-  'Comfort',
-  'Food',
-  'Cooking & Eating',
-  'Personal Care',
-  'Clothing & Accessories',
-  'Misc',
-]
-
-function formatDateRange(startStr, endStr) {
-  const opts = { month: 'short', day: 'numeric' }
-  const start = new Date(startStr + 'T00:00:00')
-  const end = new Date(endStr + 'T00:00:00')
-  return `${start.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', { ...opts, year: 'numeric' })}`
-}
-
 function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
-  const storageKey = `fp_list_${event.id}`
-  const notesKey = `fp_notes_${event.id}`
-  const wishKey = `fp_wish_${event.id}`
+  const storageKey = listKey(event.id)
+  const notesStorageKey = makeNotesKey(event.id)
+  const wishStorageKey = makeWishKey(event.id)
 
   const [showChoice, setShowChoice] = useState(() => !localStorage.getItem(storageKey))
   const [items, setItems] = useState(() => {
@@ -35,10 +20,10 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
       return []
     }
   })
-  const [notes, setNotes] = useState(() => localStorage.getItem(notesKey) || '')
+  const [notes, setNotes] = useState(() => localStorage.getItem(notesStorageKey) || '')
   const [wishItems, setWishItems] = useState(() => {
     try {
-      const saved = localStorage.getItem(wishKey)
+      const saved = localStorage.getItem(wishStorageKey)
       return saved ? JSON.parse(saved) : []
     } catch {
       return []
@@ -59,8 +44,8 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
   const isPast = event.status === 'past'
 
   useEffect(() => { localStorage.setItem(storageKey, JSON.stringify(items)) }, [items, storageKey])
-  useEffect(() => { localStorage.setItem(notesKey, notes) }, [notes, notesKey])
-  useEffect(() => { localStorage.setItem(wishKey, JSON.stringify(wishItems)) }, [wishItems, wishKey])
+  useEffect(() => { localStorage.setItem(notesStorageKey, notes) }, [notes, notesStorageKey])
+  useEffect(() => { localStorage.setItem(wishStorageKey, JSON.stringify(wishItems)) }, [wishItems, wishStorageKey])
 
   // --- Item actions ---
   function togglePacked(id) {
@@ -207,17 +192,13 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
 
       {/* Header */}
       <div className="packing-list-header">
-        <button className="btn-back" onClick={onBack}>← Back</button>
+        <button className="btn-back" onClick={onBack} aria-label="Back">←</button>
         <div className="packing-list-title">
           <h2>
             {event.name}
             {event.website && (
               <a href={event.website} target="_blank" rel="noopener noreferrer" className="event-site-link" aria-label="Event website">
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M5 1.5H2C1.72 1.5 1.5 1.72 1.5 2V11C1.5 11.28 1.72 11.5 2 11.5H11C11.28 11.5 11.5 11.28 11.5 11V8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                  <path d="M7.5 1.5H11.5V5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M11.5 1.5L6 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                </svg>
+                <ExternalLinkIcon size={13} />
               </a>
             )}
           </h2>

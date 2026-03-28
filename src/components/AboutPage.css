@@ -1,0 +1,270 @@
+.about-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.about-page .btn-back {
+  align-self: flex-start;
+}
+
+.about-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.about-header p {
+  font-size: 0.95rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+/* Accordion */
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.accordion-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  transition: background-color 0.15s;
+}
+
+.accordion-header:hover {
+  background-color: var(--bg-subtle);
+}
+
+.accordion-chevron {
+  flex-shrink: 0;
+  color: var(--text-light);
+  transition: transform 0.2s ease;
+}
+
+.accordion-section--open .accordion-chevron {
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  padding: 0 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Cards inside accordion */
+.about-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.about-card__heading {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.about-card p {
+  font-size: 0.9rem;
+  color: #3a3530;
+  line-height: 1.6;
+}
+
+.about-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-left: 1rem;
+}
+
+.about-list li {
+  font-size: 0.9rem;
+  color: #3a3530;
+  line-height: 1.5;
+  position: relative;
+  padding-left: 1rem;
+}
+
+.about-list li::before {
+  content: '—';
+  position: absolute;
+  left: -0.25rem;
+  color: var(--text-ghost);
+}
+
+.about-note {
+  font-size: 0.85rem !important;
+  font-style: italic;
+  color: var(--text-light) !important;
+  background: #f0ece7;
+  border-radius: 6px;
+  padding: 0.65rem 0.85rem;
+}
+
+/* Developer card */
+.about-card--developer {
+  gap: 1.25rem;
+}
+
+.developer-bio {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.developer-links {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.developer-links a {
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.developer-links a:hover {
+  color: var(--teal);
+}
+
+/* Help improve section */
+.improve-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.improve-item + .improve-item {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e8e4df;
+}
+
+.coming-soon {
+  font-size: 0.85rem !important;
+  color: var(--text-faint) !important;
+}
+
+/* Feedback form */
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.feedback-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.feedback-row .feedback-field {
+  flex: 1;
+}
+
+.feedback-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.feedback-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-mid);
+}
+
+.feedback-field input,
+.feedback-field select,
+.feedback-field textarea {
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border-mid);
+  border-radius: 6px;
+  padding: 0.45rem 0.7rem;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.feedback-field input:focus,
+.feedback-field select:focus,
+.feedback-field textarea:focus {
+  outline: none;
+  border-color: var(--teal-mid);
+}
+
+.feedback-field textarea {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.5;
+}
+
+.feedback-error {
+  font-size: 0.85rem;
+  color: var(--danger);
+}
+
+.feedback-submit {
+  align-self: flex-start;
+}
+
+.feedback-success {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #edf7f5;
+  border: 1px solid #b2ddd8;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--teal);
+}
+
+@media (max-width: 480px) {
+  .feedback-row {
+    flex-direction: column;
+  }
+}
+
+.kofi-btn {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.45rem 1.1rem;
+  background-color: var(--teal);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: background-color 0.15s;
+}
+
+.kofi-btn:hover {
+  background-color: var(--teal-mid);
+}

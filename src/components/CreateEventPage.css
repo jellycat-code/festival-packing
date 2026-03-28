@@ -20,7 +20,7 @@
 .form-group > label {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #2a2a2a;
+  color: var(--text);
 }
 
 .form-row {
@@ -29,16 +29,22 @@
   gap: 1rem;
 }
 
+@media (max-width: 420px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 input[type="text"],
 input[type="number"],
 input[type="date"] {
   padding: 0.55rem 0.75rem;
-  border: 1px solid #c8c2bc;
+  border: 1px solid var(--text-ghost);
   border-radius: 6px;
   font-size: 0.95rem;
   font-family: inherit;
-  background: #ffffff;
-  color: #2a2a2a;
+  background: var(--bg-card);
+  color: var(--text);
   transition: border-color 0.2s;
   width: 100%;
 }
@@ -47,11 +53,11 @@ input[type="text"]:focus,
 input[type="number"]:focus,
 input[type="date"]:focus {
   outline: none;
-  border-color: #2a2a2a;
+  border-color: var(--text);
 }
 
 .form-fieldset {
-  border: 1px solid #e0dbd4;
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 1.25rem;
   display: flex;
@@ -62,7 +68,7 @@ input[type="date"]:focus {
 .form-fieldset legend {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #5a5550;
+  color: var(--text-mid);
   padding: 0 0.4rem;
 }
 
@@ -84,24 +90,24 @@ input[type="date"]:focus {
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: #2a2a2a;
+  accent-color: var(--text);
 }
 
 .form-hint {
   font-size: 0.82rem;
-  color: #8a847e;
+  color: var(--text-light);
   margin-top: 0.1rem;
 }
 
 .form-label-optional {
   font-size: 0.8rem;
   font-weight: 400;
-  color: #8a847e;
+  color: var(--text-light);
 }
 
 .form-error {
   font-size: 0.85rem;
-  color: #b94040;
+  color: var(--danger);
   margin-top: 0.1rem;
 }
 

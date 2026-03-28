@@ -3,6 +3,8 @@ import HomePage from './components/HomePage'
 import CreateEventPage from './components/CreateEventPage'
 import PackingListPage from './components/PackingListPage'
 import LNTPage from './components/LNTPage'
+import AboutPage from './components/AboutPage'
+import { EVENTS_KEY, listKey, notesKey } from './utils/storageKeys'
 import './App.css'
 
 // Decorative hexagon accents in the header
@@ -36,7 +38,7 @@ const BG_HEXES = [
 function App() {
   const [events, setEvents] = useState(() => {
     try {
-      const saved = localStorage.getItem('fp_events')
+      const saved = localStorage.getItem(EVENTS_KEY)
       return saved ? JSON.parse(saved) : []
     } catch {
       return []
@@ -48,7 +50,7 @@ function App() {
   const [feedbackOnOpen, setFeedbackOnOpen] = useState(false)
 
   useEffect(() => {
-    localStorage.setItem('fp_events', JSON.stringify(events))
+    localStorage.setItem(EVENTS_KEY, JSON.stringify(events))
   }, [events])
 
   // Auto-expire planning events whose end date has passed
@@ -88,8 +90,8 @@ function App() {
 
   function handleDeleteEvent(event) {
     setEvents(prev => prev.filter(e => e.id !== event.id))
-    localStorage.removeItem(`fp_list_${event.id}`)
-    localStorage.removeItem(`fp_notes_${event.id}`)
+    localStorage.removeItem(listKey(event.id))
+    localStorage.removeItem(notesKey(event.id))
   }
 
   function handleOpenEvent(event) {
@@ -104,7 +106,7 @@ function App() {
   return (
     <div className="app">
       <div className="bg-hex-watermark" aria-hidden="true">
-        <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+        <svg width="100%" height="100%" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
           {BG_HEXES.map((h, i) => (
             <polygon key={i} points={hexPoints(h.cx, h.cy, h.r)}
               fill="none" stroke="currentColor" strokeWidth="2" />
@@ -113,7 +115,7 @@ function App() {
       </div>
       <header className="header">
         <svg className="header-hexes" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 1440 64" preserveAspectRatio="xMaxYMid slice">
+          width="100%" height="100%" viewBox="0 0 1440 64" preserveAspectRatio="xMaxYMid slice">
           {HEADER_HEXES.map((h, i) => (
             <polygon key={i} points={hexPoints(h.cx, h.cy, h.r)}
               fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" />
@@ -148,7 +150,8 @@ function App() {
             onCancel={() => setCurrentPage('home')}
           />
         )}
-        {currentPage === 'lnt' && <LNTPage />}
+        {currentPage === 'lnt' && <LNTPage onBack={() => setCurrentPage('home')} />}
+        {currentPage === 'about' && <AboutPage onBack={() => setCurrentPage('home')} />}
         {currentPage === 'packing' && selectedEvent && (
           <PackingListPage
             event={selectedEvent}
@@ -159,6 +162,7 @@ function App() {
       </main>
 
       <footer className="footer">
+        <a className="footer-about" onClick={() => setCurrentPage('about')}>About</a>
         <a className="footer-lnt" onClick={() => setCurrentPage('lnt')}>Leave No Trace</a>
       </footer>
 

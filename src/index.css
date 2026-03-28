@@ -1,15 +1,57 @@
+:root {
+  /* Brand */
+  --teal: #01665e;
+  --teal-mid: #35978f;
+  --amber: #bf812d;
+  --amber-dark: #8c510a;
+  --amber-warm: #b08050;
+
+  /* Text */
+  --text: #2a2a2a;
+  --text-mid: #5a5550;
+  --text-light: #8a847e;
+  --text-faint: #aaa49e;
+  --text-ghost: #c8c2bc;
+
+  /* Backgrounds */
+  --bg: #f5f2ee;
+  --bg-card: #ffffff;
+  --bg-subtle: #faf9f7;
+
+  /* Borders */
+  --border: #e0dbd4;
+  --border-light: #ede9e4;
+  --border-mid: #d8d2cc;
+
+  /* Danger */
+  --danger: #b94040;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html {
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #f5f2ee;
-  color: #2a2a2a;
+  background-color: var(--bg);
+  color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
+  overflow-x: clip;
+  position: relative;
+  overscroll-behavior-x: none;
+}
+
+#root {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 a {

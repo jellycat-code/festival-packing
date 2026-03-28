@@ -1,10 +1,13 @@
 import { useState, useMemo } from 'react'
 import Modal from './Modal'
+import ExternalLinkIcon from './ExternalLinkIcon'
+import { formatDateRange } from '../utils/format'
+import { listKey } from '../utils/storageKeys'
 import './EventCard.css'
 
 function getPackingProgress(eventId) {
   try {
-    const saved = localStorage.getItem(`fp_list_${eventId}`)
+    const saved = localStorage.getItem(listKey(eventId))
     if (!saved) return null
     const items = JSON.parse(saved)
     const countable = items.filter(i => !i.rejected && !i.parentId)
@@ -14,15 +17,6 @@ function getPackingProgress(eventId) {
   } catch {
     return null
   }
-}
-
-function formatDateRange(startStr, endStr) {
-  const opts = { month: 'short', day: 'numeric' }
-  const start = new Date(startStr + 'T00:00:00')
-  const end = new Date(endStr + 'T00:00:00')
-  const startFormatted = start.toLocaleDateString('en-US', opts)
-  const endFormatted = end.toLocaleDateString('en-US', { ...opts, year: 'numeric' })
-  return `${startFormatted} – ${endFormatted}`
 }
 
 function EventCard({ event, onOpen, onEdit, onDelete, isPast }) {
@@ -37,11 +31,7 @@ function EventCard({ event, onOpen, onEdit, onDelete, isPast }) {
           {event.name}
           {event.website && (
             <a href={event.website} target="_blank" rel="noopener noreferrer" className="event-site-link" aria-label="Event website">
-              <svg width="12" height="12" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M5 1.5H2C1.72 1.5 1.5 1.72 1.5 2V11C1.5 11.28 1.72 11.5 2 11.5H11C11.28 11.5 11.5 11.28 11.5 11V8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                <path d="M7.5 1.5H11.5V5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M11.5 1.5L6 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-              </svg>
+              <ExternalLinkIcon size={12} />
             </a>
           )}
         </h3>

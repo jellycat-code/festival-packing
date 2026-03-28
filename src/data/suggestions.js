@@ -1,7 +1,30 @@
 // Master list of suggested items.
-// condition: optional function — if it returns false for this event, the item is skipped.
-// qty: number or function({ eventDays, buildDays, travelDays, totalDays }) => number
-// singleton: true — never show a quantity stepper (always exactly 1)
+//
+// Item fields:
+//   name       — display name (and key for feedback history matching)
+//   category   — must match a value in CATEGORY_ORDER
+//   condition  — optional function(event) => boolean. Item is skipped if it returns false.
+//   qty        — number or function({ eventDays, buildDays, travelDays, totalDays }) => number
+//   singleton  — true means no quantity stepper (always exactly 1)
+//   label      — optional function(dayContext) => string, overrides display name with a dynamic label
+//   note       — optional string rendered as italic subtext below the item name
+//   children   — optional array of { name, singleton } sub-items added automatically under this item
+//
+// Feedback pre-rejection: if a user marks an item "Didn't need" on a past event, it is pre-rejected
+// on future suggestions UNLESS a condition function is actively triggering the item (e.g., rain jacket
+// won't be pre-rejected if the current event has rain in the forecast).
+
+// Display order for categories in the packing list and shopping list.
+export const CATEGORY_ORDER = [
+  'IMPORTANT',
+  'Infrastructure',
+  'Comfort',
+  'Food',
+  'Cooking & Eating',
+  'Personal Care',
+  'Clothing & Accessories',
+  'Misc',
+]
 
 const MASTER_LIST = [
   // IMPORTANT
