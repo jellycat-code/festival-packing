@@ -3,7 +3,7 @@ import { generateSuggestions, migrateSavedItems, CATEGORY_ORDER } from '../data/
 import Modal from './Modal'
 import ExternalLinkIcon from './ExternalLinkIcon'
 import { formatDateRange } from '../utils/format'
-import { listKey, notesKey as makeNotesKey, wishKey as makeWishKey } from '../utils/storageKeys'
+import { listKey, notesKey as makeNotesKey, wishKey as makeWishKey, BLOCKLIST_KEY, USER_DEFAULTS_KEY } from '../utils/storageKeys'
 import './PackingListPage.css'
 
 function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
@@ -35,6 +35,12 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
   const [filterUnpacked, setFilterUnpacked] = useState(false)
   const [showDoneModal, setShowDoneModal] = useState(false)
   const [confirmModal, setConfirmModal] = useState(null) // { title, message, onConfirm }
+  const [expandedRemoveId, setExpandedRemoveId] = useState(null)
+  const [pendingBlocklist, setPendingBlocklist] = useState(new Set())
+  const [pendingDefaults, setPendingDefaults] = useState(new Set())
+  const [currentBlocklist, setCurrentBlocklist] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(BLOCKLIST_KEY) || '[]') } catch { return [] }
+  })
   const [addingTo, setAddingTo] = useState(null)       // category name
   const [addingSubTo, setAddingSubTo] = useState(null) // parent item id
   const [newItemName, setNewItemName] = useState('')
@@ -121,6 +127,35 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
     setWishItems(prev => prev.filter(i => i.id !== id))
   }
 
+  function addToBlocklist(itemName) {
+    if (!currentBlocklist.includes(itemName)) {
+      const updated = [...currentBlocklist, itemName]
+      localStorage.setItem(BLOCKLIST_KEY, JSON.stringify(updated))
+      setCurrentBlocklist(updated)
+    }
+  }
+
+  function handleSaveBlocklist() {
+    const updated = [...new Set([...currentBlocklist, ...pendingBlocklist])]
+    localStorage.setItem(BLOCKLIST_KEY, JSON.stringify(updated))
+    setCurrentBlocklist(updated)
+    setPendingBlocklist(new Set())
+  }
+
+  function handleSaveDefaults() {
+    let existing = []
+    try { existing = JSON.parse(localStorage.getItem(USER_DEFAULTS_KEY) || '[]') } catch {}
+    const existingNames = new Set(existing.map(d => d.name))
+    const toAdd = [...pendingDefaults]
+      .map(name => {
+        const item = items.find(i => i.name === name)
+        return { name, category: item?.category || 'Misc' }
+      })
+      .filter(d => !existingNames.has(d.name))
+    localStorage.setItem(USER_DEFAULTS_KEY, JSON.stringify([...existing, ...toAdd]))
+    setPendingDefaults(new Set())
+  }
+
   // --- Derived data ---
   const visibleItems = items.filter(i => !i.rejected)
   const rejectedItems = items.filter(i => i.rejected)
@@ -131,6 +166,8 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
     ? CATEGORY_ORDER
     : CATEGORY_ORDER.filter(cat => displayItems.some(i => i.category === cat && !i.parentId))
   const shoppingCategories = CATEGORY_ORDER.filter(cat => shoppingItems.some(i => i.category === cat))
+  const removedSuggestions = items.filter(i => i.rejected && !i.custom && !i.parentId && !currentBlocklist.includes(i.name))
+  const customAdded = items.filter(i => i.custom && !i.parentId)
 
   // Whether to show a quantity stepper for an item
   function showQty(item) {
@@ -182,7 +219,17 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
             aria-pressed={item.needsToPurchase}
           >{item.needsToPurchase ? 'Buy ✓' : 'Buy?'}</button>
         )}
-        <button className="btn-remove" onClick={() => removeItem(item.id)} aria-label={`Remove ${label}`}>✕</button>
+        <button
+          className="btn-remove"
+          onClick={() => {
+            if (!item.custom && !item.parentId && item.category !== 'IMPORTANT') {
+              setExpandedRemoveId(prev => prev === item.id ? null : item.id)
+            } else {
+              removeItem(item.id)
+            }
+          }}
+          aria-label={`Remove ${label}`}
+        >✕</button>
       </>
     )
   }
@@ -340,6 +387,23 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
                           </li>
                         ))}
 
+                        {/* Remove expand */}
+                        {!feedbackMode && expandedRemoveId === item.id && (
+                          <li className="item-row item-row--remove-expand">
+                            <div className="remove-expand-actions">
+                              <button className="btn-remove-once" onClick={() => { removeItem(item.id); setExpandedRemoveId(null) }}>
+                                Remove this time
+                              </button>
+                              <button className="btn-remove-never" onClick={() => { addToBlocklist(item.name); removeItem(item.id); setExpandedRemoveId(null) }}>
+                                Don't suggest again
+                              </button>
+                              <button className="btn-remove-cancel" onClick={() => setExpandedRemoveId(null)}>
+                                Cancel
+                              </button>
+                            </div>
+                          </li>
+                        )}
+
                         {/* Add sub-item form */}
                         {!feedbackMode && addingSubTo === item.id && (
                           <li className="item-row item-row--add-sub-form">
@@ -419,6 +483,68 @@ function PackingListPage({ event, onBack, initialFeedbackMode = false }) {
                 />
                 <button className="btn btn--primary" onClick={addWishItem}>Add</button>
               </div>
+            </section>
+          )}
+
+          {feedbackMode && removedSuggestions.length > 0 && (
+            <section className="category-section category-section--review">
+              <h3 className="category-heading">Suggestions you removed</h3>
+              <p className="category-subtext">Check the items you want removed from future recommendations.</p>
+              <ul className="review-checklist">
+                {removedSuggestions.map(item => (
+                  <li key={item.id} className="review-check-item">
+                    <input
+                      type="checkbox"
+                      className="item-checkbox"
+                      id={`block-${item.id}`}
+                      checked={pendingBlocklist.has(item.name)}
+                      onChange={() => setPendingBlocklist(prev => {
+                        const next = new Set(prev)
+                        if (next.has(item.name)) next.delete(item.name)
+                        else next.add(item.name)
+                        return next
+                      })}
+                    />
+                    <label htmlFor={`block-${item.id}`} className="item-name">{item.name}</label>
+                  </li>
+                ))}
+              </ul>
+              {pendingBlocklist.size > 0 && (
+                <button className="btn btn--primary" onClick={handleSaveBlocklist}>
+                  Remove from future recommendations
+                </button>
+              )}
+            </section>
+          )}
+
+          {feedbackMode && customAdded.length > 0 && (
+            <section className="category-section category-section--review">
+              <h3 className="category-heading">Custom items you added</h3>
+              <p className="category-subtext">Check the items you want added to future recommendations.</p>
+              <ul className="review-checklist">
+                {customAdded.map(item => (
+                  <li key={item.id} className="review-check-item">
+                    <input
+                      type="checkbox"
+                      className="item-checkbox"
+                      id={`default-${item.id}`}
+                      checked={pendingDefaults.has(item.name)}
+                      onChange={() => setPendingDefaults(prev => {
+                        const next = new Set(prev)
+                        if (next.has(item.name)) next.delete(item.name)
+                        else next.add(item.name)
+                        return next
+                      })}
+                    />
+                    <label htmlFor={`default-${item.id}`} className="item-name">{item.name}</label>
+                  </li>
+                ))}
+              </ul>
+              {pendingDefaults.size > 0 && (
+                <button className="btn btn--primary" onClick={handleSaveDefaults}>
+                  Add to future recommendations
+                </button>
+              )}
             </section>
           )}
 

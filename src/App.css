@@ -170,3 +170,21 @@
 .event-site-link:hover {
   color: var(--teal-mid);
 }
+
+.btn-settings-gear {
+  position: relative;
+  z-index: 1;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.btn-settings-gear:hover {
+  color: rgba(255,255,255,1);
+}

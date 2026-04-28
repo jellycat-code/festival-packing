@@ -613,3 +613,86 @@
   margin-bottom: 0.75rem;
   margin-top: -0.4rem;
 }
+
+/* Remove expand row */
+.item-row--remove-expand {
+  background: #fdf8f3;
+  border-top: 1px solid #f0e8dc;
+  padding: 0.5rem 0.75rem;
+  flex-wrap: wrap;
+}
+
+.remove-expand-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-remove-once {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-mid);
+  background: transparent;
+  color: var(--text-light);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.btn-remove-once:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.btn-remove-never {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 4px;
+  border: 1px solid #e0b4b4;
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.btn-remove-never:hover {
+  background: #fdf0f0;
+}
+
+.btn-remove-cancel {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.btn-remove-cancel:hover {
+  color: var(--text-light);
+}
+
+/* Post-event review sections */
+.category-section--review {
+  border-color: #d9c9b0;
+  background: #fdfaf6;
+}
+
+.review-checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.review-check-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}

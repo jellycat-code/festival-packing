@@ -122,6 +122,7 @@ const MASTER_LIST = [
   { name: 'Bug spray', category: 'Personal Care', singleton: true },
   { name: 'First aid kit', category: 'Personal Care', singleton: true },
   { name: 'OTC meds', category: 'Personal Care', singleton: true },
+  { name: 'Pee bottle or portable toilet', category: 'Personal Care', singleton: true },
   { name: 'Toilet paper', category: 'Personal Care', singleton: true },
   { name: 'Lip balm', category: 'Personal Care', singleton: true },
   { name: 'Towel', category: 'Personal Care', singleton: true },
@@ -236,6 +237,11 @@ export function migrateSavedItems(savedItems) {
 export function generateSuggestions(event) {
   const { didntNeed, needMore, wishItems } = readFeedbackHistory()
 
+  let blocklist = []
+  let userDefaults = []
+  try { blocklist = JSON.parse(localStorage.getItem('fp_blocklist') || '[]') } catch {}
+  try { userDefaults = JSON.parse(localStorage.getItem('fp_user_defaults') || '[]') } catch {}
+
   const start = new Date(event.startDate + 'T00:00:00')
   const end = new Date(event.endDate + 'T00:00:00')
   const eventDays = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1
@@ -247,6 +253,7 @@ export function generateSuggestions(event) {
   const generated = []
   MASTER_LIST
     .filter(item => !item.condition || item.condition(event))
+    .filter(item => !blocklist.includes(item.name))
     .forEach((item, index) => {
       const baseQty = item.singleton ? 1 : computeQty(item, dayContext)
       const extraQty = item.singleton ? 0 : (needMore[item.name] || 0)
@@ -311,5 +318,20 @@ export function generateSuggestions(event) {
       }
     })
 
-  return [...generated, ...wishSuggestions]
+  const userDefaultSuggestions = userDefaults
+    .filter(d => !generatedNames.has(d.name) && !blocklist.includes(d.name))
+    .map((d, i) => ({
+      id: `ud_${i}_${Date.now()}`,
+      name: d.name,
+      category: d.category || 'Misc',
+      quantity: 1,
+      singleton: false,
+      parentId: null,
+      packed: false,
+      needsToPurchase: false,
+      custom: true,
+      rejected: false,
+    }))
+
+  return [...generated, ...wishSuggestions, ...userDefaultSuggestions]
 }

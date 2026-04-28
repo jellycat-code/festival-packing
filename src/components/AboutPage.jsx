@@ -141,7 +141,7 @@ function AboutPage({ onBack }) {
               <li><strong>Need more</strong> — lets you specify how many extra you wished you'd had; DustReady will bump the quantity next time</li>
               <li><strong>Wish I'd Brought</strong> — add anything you wished you'd had but didn't pack; it'll be suggested on future trips</li>
             </ul>
-            <p className="about-note">Removing an item with ✕ only affects the current list — it won't change future suggestions. Only feedback from the post-event review influences future lists.</p>
+            <p className="about-note">When you remove an item with ✕, you can choose <strong>Remove this time</strong> to only drop it from the current list, or <strong>Don't suggest again</strong> to permanently remove it from future recommendations. You can also review removed suggestions and custom items in the post-event feedback to update your defaults. Manage everything in <strong>Settings</strong>.</p>
           </div>
 
           <div className="about-card">
