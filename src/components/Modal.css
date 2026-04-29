@@ -39,3 +39,39 @@
   flex-wrap: wrap;
   margin-top: 0.5rem;
 }
+
+.reset-modal-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.reset-modal-option {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.reset-modal-option:hover {
+  border-color: var(--border-mid);
+  background: var(--bg-card);
+}
+
+.reset-modal-option__title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.reset-modal-option__desc {
+  font-size: 0.82rem;
+  color: var(--text-light);
+  line-height: 1.4;
+}

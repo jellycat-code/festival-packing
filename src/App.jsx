@@ -47,6 +47,7 @@ function App() {
   })
   const [currentPage, setCurrentPage] = useState('home')
   const [editingEvent, setEditingEvent] = useState(null)
+  const [editReturnTo, setEditReturnTo] = useState('home')
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [feedbackOnOpen, setFeedbackOnOpen] = useState(false)
 
@@ -74,15 +75,18 @@ function App() {
     setCurrentPage('home')
   }
 
-  function handleEditEvent(event) {
+  function handleEditEvent(event, returnTo = 'home') {
     setEditingEvent(event)
+    setEditReturnTo(returnTo)
     setCurrentPage('edit')
   }
 
   function handleSaveEvent(updatedEvent) {
     setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e))
+    if (editReturnTo === 'packing') setSelectedEvent(updatedEvent)
     setEditingEvent(null)
-    setCurrentPage('home')
+    setCurrentPage(editReturnTo)
+    setEditReturnTo('home')
   }
 
   function handleDismissReminder(eventId) {
@@ -154,7 +158,7 @@ function App() {
           <CreateEventPage
             initialEvent={editingEvent}
             onSave={handleSaveEvent}
-            onCancel={() => setCurrentPage('home')}
+            onCancel={() => { setCurrentPage(editReturnTo); setEditReturnTo('home') }}
           />
         )}
         {currentPage === 'lnt' && <LNTPage onBack={() => setCurrentPage('home')} />}
@@ -164,6 +168,7 @@ function App() {
           <PackingListPage
             event={selectedEvent}
             onBack={() => { setCurrentPage('home'); setFeedbackOnOpen(false) }}
+            onEditEvent={(event) => handleEditEvent(event, 'packing')}
             initialFeedbackMode={feedbackOnOpen}
           />
         )}

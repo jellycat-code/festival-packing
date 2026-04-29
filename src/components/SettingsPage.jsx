@@ -39,7 +39,7 @@ function SettingsPage({ onBack }) {
             {blocklist.map(name => (
               <li key={name} className="settings-list-item">
                 <span className="settings-item-name">{name}</span>
-                <button className="btn-settings-remove" onClick={() => removeFromBlocklist(name)}>Remove</button>
+                <button className="btn-settings-remove" onClick={() => removeFromBlocklist(name)}>Restore</button>
               </li>
             ))}
           </ul>

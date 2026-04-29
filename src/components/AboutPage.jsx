@@ -1,11 +1,10 @@
 import { useState, useRef } from 'react'
 import './AboutPage.css'
 
-function AccordionSection({ title, children, defaultOpen = false }) {
-  const [open, setOpen] = useState(defaultOpen)
+function AccordionSection({ title, children, open, onToggle }) {
   return (
     <div className={`accordion-section ${open ? 'accordion-section--open' : ''}`}>
-      <button className="accordion-header" onClick={() => setOpen(prev => !prev)} aria-expanded={open}>
+      <button className="accordion-header" onClick={onToggle} aria-expanded={open}>
         <span>{title}</span>
         <svg className="accordion-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -101,6 +100,12 @@ function FeedbackForm() {
 }
 
 function AboutPage({ onBack }) {
+  const [openSection, setOpenSection] = useState('how-it-works')
+
+  function toggle(id) {
+    setOpenSection(prev => prev === id ? null : id)
+  }
+
   return (
     <div className="about-page">
 
@@ -113,23 +118,40 @@ function AboutPage({ onBack }) {
 
       <div className="accordion">
 
-        <AccordionSection title="How it works" defaultOpen={true}>
+        <AccordionSection title="How it works" open={openSection === 'how-it-works'} onToggle={() => toggle('how-it-works')}>
           <div className="about-card">
             <h4 className="about-card__heading">Creating an event</h4>
-            <p>Add your event details — dates, location, build days, travel days, and weather conditions. The more detail you provide, the more tailored your suggestions will be. Weather conditions in particular will trigger relevant items like rain gear, warm layers, or a fan.</p>
+            <p>Add your event details. Quantities of different kinds of days (travel, build, and event) will adjust recommended quantities for some items, and the weather conditions trigger appropriate gear recommendations. Eventually, weather data will be fetched and updated automatically, but for now you'll have to input it manually if you want those suggestions to be triggered.</p>
+            <p>You can edit your event details at any time — either from the dashboard or directly from your packing list.</p>
           </div>
 
           <div className="about-card">
             <h4 className="about-card__heading">Your packing list</h4>
-            <p>When you open a new event's packing list for the first time, you'll be asked whether you want a suggested list or a blank one. Suggestions are based on your event details and anything DustReady has learned from your past trips.</p>
+            <p>When you first open a new event, you can ask DustReady to <strong>Suggest a packing list</strong> or <strong>Start from scratch</strong>.</p>
             <ul className="about-list">
-              <li>Check items off as you pack them</li>
-              <li>Adjust quantities using the − and + buttons</li>
-              <li>Mark items you still need to buy with <strong>Buy?</strong> — they'll appear on a separate Shopping List tab</li>
-              <li>Remove items that don't apply with <strong>✕</strong> — they move to a Rejected section at the bottom where you can restore them if you change your mind</li>
+              <li>Toggle between <strong>Show all items</strong> and <strong>Show what's left</strong> to filter your list</li>
+              <li>Add custom items to any category</li>
               <li>Add sub-items under any item (hover or focus an item to see <strong>+ sub-item</strong>)</li>
-              <li>Add your own custom items to any category</li>
-              <li>Filter to only unpacked items using <strong>Show remaining</strong></li>
+              <li>Adjust quantities using the − and + buttons</li>
+              <li>Check items off as you pack them</li>
+              <li>Remove items that don't apply with <strong>✕</strong>
+                <ul className="about-list">
+                  <li><strong>Remove this time</strong> — drops it from this list only</li>
+                  <li><strong>Don't suggest again</strong> — removes it from future recommendations</li>
+                </ul>
+              </li>
+              <li>Mark items you still need to buy with <strong>Buy?</strong> — they'll appear on a separate Shopping List tab</li>
+              <li>Made a mistake or want to start over? Tap <strong>Reset packing list</strong> below your event details to reset to suggestions or start from scratch</li>
+            </ul>
+          </div>
+
+          <div className="about-card">
+            <h4 className="about-card__heading">The Shopping List</h4>
+            <p>When you mark an item with <strong>Buy?</strong>, it gets added to your Shopping List tab. From there you can:</p>
+            <ul className="about-list">
+              <li>Adjust how many you need to buy using the − and + buttons</li>
+              <li>Check items off as you purchase them — they'll move to a Purchased section at the bottom</li>
+              <li>Remove items from the list with <strong>✕</strong></li>
             </ul>
           </div>
 
@@ -147,11 +169,10 @@ function AboutPage({ onBack }) {
           <div className="about-card">
             <h4 className="about-card__heading">Leave No Trace</h4>
             <p>Leaving the land as you found it — or better — is one of the most important things you can do as a festival and burn participant. Tap <strong>Leave No Trace</strong> in the footer to learn more about the principles.</p>
-            <p>One packing note: avoid items that shed or break apart easily, like glitter, feather boas, and sequins that aren't well-secured. What falls on the playa or forest floor stays there.</p>
           </div>
         </AccordionSection>
 
-        <AccordionSection title="About the developer">
+        <AccordionSection title="About the developer" open={openSection === 'about-developer'} onToggle={() => toggle('about-developer')}>
           <div className="about-card about-card--developer">
             <div className="developer-bio">
               <p>Hi, I'm Amanda — a former therapist, aerial artist, and self-taught developer based in Denver, CO.</p>
@@ -191,7 +212,7 @@ function AboutPage({ onBack }) {
           </div>
         </AccordionSection>
 
-        <AccordionSection title="Help improve DustReady">
+        <AccordionSection title="Help improve DustReady" open={openSection === 'help-improve'} onToggle={() => toggle('help-improve')}>
           <div className="about-card">
             <div className="improve-item">
               <h4 className="about-card__heading">Share feedback</h4>
