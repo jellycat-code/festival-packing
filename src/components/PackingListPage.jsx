@@ -32,7 +32,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
 
   const [view, setView] = useState('packing')
   const [feedbackMode, setFeedbackMode] = useState(initialFeedbackMode)
-  const [filterUnpacked, setFilterUnpacked] = useState(false)
+  const [filterUnpacked, setFilterUnpacked] = useState(true)
   const [showDoneModal, setShowDoneModal] = useState(false)
   const [confirmModal, setConfirmModal] = useState(null) // { title, message, onConfirm }
   const [showResetModal, setShowResetModal] = useState(false)
@@ -49,6 +49,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
   const [newItemName, setNewItemName] = useState('')
   const [newSubItemName, setNewSubItemName] = useState('')
   const [newWishName, setNewWishName] = useState('')
+  const [newWishCategory, setNewWishCategory] = useState('')
 
   const isPast = event.status === 'past'
 
@@ -133,7 +134,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
 
   function addWishItem() {
     if (!newWishName.trim()) return
-    setWishItems(prev => [...prev, { id: Date.now(), name: newWishName.trim() }])
+    setWishItems(prev => [...prev, { id: Date.now(), name: newWishName.trim(), category: newWishCategory || null }])
     setNewWishName('')
   }
   function removeWishItem(id) {
@@ -332,21 +333,21 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
       {view === 'packing' && !isPast && !feedbackMode && (
         <div className="filter-toggle">
           <span
-            className={`filter-toggle__label ${!filterUnpacked ? 'filter-toggle__label--active' : ''}`}
-            onClick={() => setFilterUnpacked(false)}
-          >Show all items</span>
+            className={`filter-toggle__label ${filterUnpacked ? 'filter-toggle__label--active' : ''}`}
+            onClick={() => setFilterUnpacked(true)}
+          >Show what's left</span>
           <button
-            className={`filter-toggle__switch ${filterUnpacked ? 'filter-toggle__switch--on' : ''}`}
+            className={`filter-toggle__switch ${!filterUnpacked ? 'filter-toggle__switch--on' : ''}`}
             onClick={() => setFilterUnpacked(prev => !prev)}
-            aria-pressed={filterUnpacked}
+            aria-pressed={!filterUnpacked}
             aria-label="Toggle between show all and what's left"
           >
             <span className="filter-toggle__thumb" />
           </button>
           <span
-            className={`filter-toggle__label ${filterUnpacked ? 'filter-toggle__label--active' : ''}`}
-            onClick={() => setFilterUnpacked(true)}
-          >Show what's left</span>
+            className={`filter-toggle__label ${!filterUnpacked ? 'filter-toggle__label--active' : ''}`}
+            onClick={() => setFilterUnpacked(false)}
+          >Show all items</span>
         </div>
       )}
 
@@ -553,18 +554,23 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
                   {wishItems.map(item => (
                     <li key={item.id} className="item-row">
                       <span className="item-name">{item.name}</span>
+                      {item.category && <span className="item-category-tag">{item.category}</span>}
                       <button className="btn-remove" onClick={() => removeWishItem(item.id)} aria-label={`Remove ${item.name} from wish list`}>✕</button>
                     </li>
                   ))}
                 </ul>
               )}
-              <div className="add-item-form">
+              <div className="add-item-form add-item-form--wish">
                 <input
                   type="text" value={newWishName}
                   onChange={e => setNewWishName(e.target.value)}
                   placeholder="e.g. extra tarp, electrolyte packets..."
                   onKeyDown={e => { if (e.key === 'Enter') addWishItem() }}
                 />
+                <select value={newWishCategory} onChange={e => setNewWishCategory(e.target.value)} className="wish-category-select">
+                  <option value="" disabled>Assign category</option>
+                  {CATEGORY_ORDER.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                </select>
                 <button className="btn btn--primary" onClick={addWishItem}>Add</button>
               </div>
             </section>

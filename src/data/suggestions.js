@@ -307,7 +307,7 @@ export function generateSuggestions(event) {
       return {
         id: `w_${i}_${Date.now()}`,
         name: w.name,
-        category: masterMatch?.category || 'Misc',
+        category: masterMatch?.category || w.category || 'Misc',
         quantity: 1,
         singleton: false,
         parentId: null,
