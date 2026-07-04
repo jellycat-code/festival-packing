@@ -159,14 +159,16 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
   function handleSaveDefaults() {
     let existing = []
     try { existing = JSON.parse(localStorage.getItem(USER_DEFAULTS_KEY) || '[]') } catch {}
-    const existingNames = new Set(existing.map(d => d.name))
-    const toAdd = [...pendingDefaults]
-      .map(name => {
-        const item = items.find(i => i.name === name)
-        return { name, category: item?.category || 'Misc' }
-      })
-      .filter(d => !existingNames.has(d.name))
-    localStorage.setItem(USER_DEFAULTS_KEY, JSON.stringify([...existing, ...toAdd]))
+    const pendingList = [...pendingDefaults].map(name => {
+      const item = items.find(i => i.name === name)
+      return { name, category: item?.category || 'Misc' }
+    })
+    const pendingNames = new Set(pendingList.map(d => d.name))
+    const updated = [
+      ...existing.map(d => pendingNames.has(d.name) ? { ...d, category: pendingList.find(p => p.name === d.name).category } : d),
+      ...pendingList.filter(d => !existing.some(e => e.name === d.name)),
+    ]
+    localStorage.setItem(USER_DEFAULTS_KEY, JSON.stringify(updated))
     setPendingDefaults(new Set())
   }
 
@@ -182,7 +184,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
     : CATEGORY_ORDER.filter(cat => displayItems.some(i => i.category === cat && !i.parentId))
   const shoppingCategories = CATEGORY_ORDER.filter(cat => shoppingItems.some(i => i.category === cat))
   const removedSuggestions = items.filter(i => i.rejected && !i.custom && !i.parentId && !currentBlocklist.includes(i.name))
-  const customAdded = items.filter(i => i.custom && !i.parentId)
+  const customAdded = items.filter(i => i.custom && !i.userDefault && !i.parentId)
 
   // Whether to show a quantity stepper for an item
   function showQty(item) {

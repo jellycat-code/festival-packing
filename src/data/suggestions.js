@@ -330,6 +330,7 @@ export function generateSuggestions(event) {
       packed: false,
       needsToPurchase: false,
       custom: true,
+      userDefault: true,
       rejected: false,
     }))
 
