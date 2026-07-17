@@ -55,6 +55,32 @@ function App() {
     localStorage.setItem(EVENTS_KEY, JSON.stringify(events))
   }, [events])
 
+  // Seed initial history entry so the back button works
+  useEffect(() => {
+    history.replaceState({ page: 'home' }, '')
+  }, [])
+
+  // Sync React state when the user presses the native back button
+  useEffect(() => {
+    function handlePopState(e) {
+      const state = e.state || { page: 'home' }
+      setCurrentPage(state.page)
+      if (state.page === 'packing' && state.eventId) {
+        setSelectedEvent(prev => {
+          const found = events.find(ev => ev.id === state.eventId)
+          return found ?? prev
+        })
+      }
+      if (state.page === 'edit' && state.eventId) {
+        const found = events.find(ev => ev.id === state.eventId)
+        if (found) setEditingEvent(found)
+        setEditReturnTo(state.returnTo ?? 'home')
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [events])
+
   // Auto-expire planning events whose end date has passed
   useEffect(() => {
     const now = new Date()
@@ -70,21 +96,28 @@ function App() {
     }
   }, [])
 
+  function navigate(page, state = {}) {
+    history.pushState({ page, ...state }, '')
+    setCurrentPage(page)
+  }
+
   function handleAddEvent(newEvent) {
     setEvents(prev => [...prev, newEvent])
+    history.replaceState({ page: 'home' }, '')
     setCurrentPage('home')
   }
 
   function handleEditEvent(event, returnTo = 'home') {
     setEditingEvent(event)
     setEditReturnTo(returnTo)
-    setCurrentPage('edit')
+    navigate('edit', { eventId: event.id, returnTo })
   }
 
   function handleSaveEvent(updatedEvent) {
     setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e))
     if (editReturnTo === 'packing') setSelectedEvent(updatedEvent)
     setEditingEvent(null)
+    history.replaceState({ page: editReturnTo, eventId: updatedEvent.id }, '')
     setCurrentPage(editReturnTo)
     setEditReturnTo('home')
   }
@@ -105,7 +138,7 @@ function App() {
       setFeedbackOnOpen(true)
     }
     setSelectedEvent(event)
-    setCurrentPage('packing')
+    navigate('packing', { eventId: event.id })
   }
 
   return (
@@ -126,10 +159,10 @@ function App() {
               fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" />
           ))}
         </svg>
-        <h1 className="logo" onClick={() => setCurrentPage('home')}>
+        <h1 className="logo" onClick={() => navigate('home')}>
           DustReady
         </h1>
-        <button className="btn-settings-gear" onClick={() => setCurrentPage('settings')} aria-label="Settings">
+        <button className="btn-settings-gear" onClick={() => navigate('settings')} aria-label="Settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
             <circle cx="12" cy="12" r="3"/>
@@ -151,33 +184,35 @@ function App() {
         {currentPage === 'create' && (
           <CreateEventPage
             onAdd={handleAddEvent}
-            onCancel={() => setCurrentPage('home')}
+            onCancel={() => navigate('home')}
           />
         )}
         {currentPage === 'edit' && (
           <CreateEventPage
             initialEvent={editingEvent}
             onSave={handleSaveEvent}
-            onCancel={() => { setCurrentPage(editReturnTo); setEditReturnTo('home') }}
+            onCancel={() => { navigate(editReturnTo, editReturnTo === 'packing' ? { eventId: editingEvent?.id } : {}); setEditReturnTo('home') }}
           />
         )}
-        {currentPage === 'lnt' && <LNTPage onBack={() => setCurrentPage('home')} />}
-        {currentPage === 'about' && <AboutPage onBack={() => setCurrentPage('home')} />}
-        {currentPage === 'settings' && <SettingsPage onBack={() => setCurrentPage('home')} />}
+        {currentPage === 'lnt' && <LNTPage onBack={() => navigate('home')} />}
+        {currentPage === 'about' && <AboutPage onBack={() => navigate('home')} />}
+        {currentPage === 'settings' && <SettingsPage onBack={() => navigate('home')} />}
         {currentPage === 'packing' && selectedEvent && (
           <PackingListPage
             event={selectedEvent}
-            onBack={() => { setCurrentPage('home'); setFeedbackOnOpen(false) }}
+            onBack={() => { navigate('home'); setFeedbackOnOpen(false) }}
             onEditEvent={(event) => handleEditEvent(event, 'packing')}
             initialFeedbackMode={feedbackOnOpen}
           />
         )}
       </main>
 
-      <footer className="footer">
-        <a className="footer-about" onClick={() => setCurrentPage('about')}>About</a>
-        <a className="footer-lnt" onClick={() => setCurrentPage('lnt')}>Leave No Trace</a>
-      </footer>
+      {currentPage === 'home' && (
+        <footer className="footer">
+          <a className="footer-about" onClick={() => navigate('about')}>About</a>
+          <a className="footer-lnt" onClick={() => navigate('lnt')}>Leave No Trace</a>
+        </footer>
+      )}
 
     </div>
   )

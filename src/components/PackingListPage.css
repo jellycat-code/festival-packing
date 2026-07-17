@@ -381,14 +381,23 @@
   white-space: nowrap;
 }
 
-.add-category-hint {
-  font-size: 0.85rem;
-  color: var(--text-faint);
-}
-
 .category-section--new {
   background: transparent;
   border-color: var(--border-light);
+}
+
+.btn-add-category {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  transition: color 0.15s;
+}
+
+.btn-add-category:hover {
+  color: var(--text);
 }
 
 /* Purchased items */

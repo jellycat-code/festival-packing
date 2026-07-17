@@ -1,5 +1,6 @@
 import { useState, useEffect, Fragment } from 'react'
-import { generateSuggestions, migrateSavedItems, CATEGORY_ORDER } from '../data/suggestions'
+import { generateSuggestions, migrateSavedItems } from '../data/suggestions'
+import { getCategories, addCategory as persistAddCategory, getCategoryRenames } from '../utils/categories'
 import Modal from './Modal'
 import ExternalLinkIcon from './ExternalLinkIcon'
 import { formatDateRange } from '../utils/format'
@@ -50,6 +51,9 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
   const [newSubItemName, setNewSubItemName] = useState('')
   const [newWishName, setNewWishName] = useState('')
   const [newWishCategory, setNewWishCategory] = useState('')
+  const [categories, setCategories] = useState(() => getCategories())
+  const [addingCategory, setAddingCategory] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
 
   const isPast = event.status === 'past'
 
@@ -96,7 +100,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
     setConfirmModal({
       title: 'Reset suggestions?',
       message: 'This will wipe your current list and start fresh with new suggestions. Any items you added or changes you made will be lost.',
-      onConfirm: () => setItems(generateSuggestions(event)),
+      onConfirm: () => setItems(generateSuggestions(event, getCategoryRenames())),
     })
   }
 
@@ -130,6 +134,17 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
     }])
     setNewSubItemName('')
     setAddingSubTo(null)
+  }
+
+  function handleAddCategory() {
+    const name = newCategoryName.trim()
+    if (!name || categories.includes(name)) return
+    persistAddCategory(name)
+    const updated = [...categories, name]
+    setCategories(updated)
+    setNewCategoryName('')
+    setAddingCategory(false)
+    setAddingTo(name)
   }
 
   function addWishItem() {
@@ -179,10 +194,15 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
   const purchasedItems = visibleItems.filter(i => i.needsToPurchase && i.purchased)
   const unpackedCount = visibleItems.filter(i => !i.packed).length
   const displayItems = filterUnpacked ? visibleItems.filter(i => !i.packed) : visibleItems
+  const knownCatSet = new Set(categories)
+  const unknownCats = [...new Set(displayItems.filter(i => !i.parentId && !knownCatSet.has(i.category)).map(i => i.category))]
   const activeCategories = items.length === 0
-    ? CATEGORY_ORDER
-    : CATEGORY_ORDER.filter(cat => displayItems.some(i => i.category === cat && !i.parentId))
-  const shoppingCategories = CATEGORY_ORDER.filter(cat => shoppingItems.some(i => i.category === cat))
+    ? categories
+    : [...categories.filter(cat => displayItems.some(i => i.category === cat && !i.parentId)), ...unknownCats]
+  const shoppingCategories = [
+    ...categories.filter(cat => shoppingItems.some(i => i.category === cat)),
+    ...[...new Set(shoppingItems.filter(i => !knownCatSet.has(i.category)).map(i => i.category))],
+  ]
   const removedSuggestions = items.filter(i => i.rejected && !i.custom && !i.parentId && !currentBlocklist.includes(i.name))
   const customAdded = items.filter(i => i.custom && !i.userDefault && !i.parentId)
 
@@ -294,7 +314,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
           <div className="list-choice__options">
             <button
               className="list-choice__option"
-              onClick={() => { setItems(generateSuggestions(event)); setShowChoice(false) }}
+              onClick={() => { setItems(generateSuggestions(event, getCategoryRenames())); setShowChoice(false) }}
             >
               <span className="list-choice__option-title">Suggest a packing list</span>
               <span className="list-choice__option-desc">We'll generate a list based on your event details and past trips.</span>
@@ -543,7 +563,24 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
 
           {!feedbackMode && (
             <section className="category-section category-section--new">
-              <p className="add-category-hint">Don't see a category you need? Add items to Misc, or use ✕ to clear out suggestions that don't apply to you.</p>
+              {addingCategory ? (
+                <div className="add-item-form">
+                  <input
+                    type="text" value={newCategoryName}
+                    onChange={e => setNewCategoryName(e.target.value)}
+                    placeholder="Category name"
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') handleAddCategory()
+                      if (e.key === 'Escape') { setAddingCategory(false); setNewCategoryName('') }
+                    }}
+                    autoFocus
+                  />
+                  <button className="btn btn--primary" onClick={handleAddCategory}>Add</button>
+                  <button className="btn btn--secondary" onClick={() => { setAddingCategory(false); setNewCategoryName('') }}>Cancel</button>
+                </div>
+              ) : (
+                <button className="btn-add-category" onClick={() => setAddingCategory(true)}>+ Add category</button>
+              )}
             </section>
           )}
 
@@ -571,7 +608,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
                 />
                 <select value={newWishCategory} onChange={e => setNewWishCategory(e.target.value)} className="wish-category-select">
                   <option value="" disabled>Assign category</option>
-                  {CATEGORY_ORDER.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
                 <button className="btn btn--primary" onClick={addWishItem}>Add</button>
               </div>

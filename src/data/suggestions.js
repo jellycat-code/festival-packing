@@ -234,7 +234,7 @@ export function migrateSavedItems(savedItems) {
   })
 }
 
-export function generateSuggestions(event) {
+export function generateSuggestions(event, categoryRenames = {}) {
   const { didntNeed, needMore, wishItems } = readFeedbackHistory()
 
   let blocklist = []
@@ -270,7 +270,7 @@ export function generateSuggestions(event) {
         name: item.name,
         label: typeof item.label === 'function' ? item.label(dayContext) : undefined,
         note: item.note || undefined,
-        category: item.category,
+        category: categoryRenames[item.category] || item.category,
         quantity,
         singleton: item.singleton || false,
         parentId: null,
@@ -285,7 +285,7 @@ export function generateSuggestions(event) {
           generated.push({
             id: `s_${index}_c${ci}_${Date.now()}`,
             name: child.name,
-            category: item.category,
+            category: categoryRenames[item.category] || item.category,
             quantity: 1,
             singleton: child.singleton || false,
             parentId,

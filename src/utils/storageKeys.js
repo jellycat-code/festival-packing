@@ -13,3 +13,4 @@ export const notesKey = id => `fp_notes_${id}`
 export const wishKey = id => `fp_wish_${id}`
 export const BLOCKLIST_KEY = 'fp_blocklist'
 export const USER_DEFAULTS_KEY = 'fp_user_defaults'
+export const USER_CATEGORIES_KEY = 'fp_user_categories'
