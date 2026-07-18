@@ -90,6 +90,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
   const [categories, setCategories] = useState(() => getCategories())
   const [addingCategory, setAddingCategory] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const isPast = event.status === 'past'
 
@@ -259,7 +260,20 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
   const shoppingItems = visibleItems.filter(i => i.needsToPurchase && !i.purchased)
   const purchasedItems = visibleItems.filter(i => i.needsToPurchase && i.purchased)
   const unpackedCount = visibleItems.filter(i => !i.packed).length
-  const displayItems = filterUnpacked ? visibleItems.filter(i => !i.packed) : visibleItems
+  const searchLower = searchQuery.trim().toLowerCase()
+  const displayItems = (() => {
+    const base = filterUnpacked ? visibleItems.filter(i => !i.packed) : visibleItems
+    if (!searchLower) return base
+    const matchIds = new Set(
+      base.filter(i => (i.label || i.name).toLowerCase().includes(searchLower)).map(i => i.id)
+    )
+    // Include parents of matching children, and children of matching parents
+    base.forEach(i => {
+      if (i.parentId && matchIds.has(i.parentId)) matchIds.add(i.id)
+      if (!i.parentId && base.some(c => c.parentId === i.id && matchIds.has(c.id))) matchIds.add(i.id)
+    })
+    return base.filter(i => matchIds.has(i.id))
+  })()
   const knownCatSet = new Set(categories)
   const unknownCats = [...new Set(displayItems.filter(i => !i.parentId && !knownCatSet.has(i.category)).map(i => i.category))]
   const activeCategories = items.length === 0
@@ -439,6 +453,25 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
         </div>
       )}
 
+      {view === 'packing' && !feedbackMode && (
+        <div className="search-bar">
+          <svg className="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="search"
+            className="search-input"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search items…"
+            aria-label="Search packing list items"
+          />
+          {searchQuery && (
+            <button className="search-clear" onClick={() => setSearchQuery('')} aria-label="Clear search">✕</button>
+          )}
+        </div>
+      )}
+
       {/* ── SHOPPING LIST VIEW ── */}
       {view === 'shopping' && (<>
         {shoppingItems.length === 0 && purchasedItems.length === 0 ? (
@@ -499,6 +532,12 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
                 className={`btn-feedback-toggle ${feedbackMode ? 'btn-feedback-toggle--active' : ''}`}
                 onClick={() => setFeedbackMode(prev => !prev)}
               >{feedbackMode ? 'Done' : 'Add feedback'}</button>
+            </div>
+          )}
+
+          {searchLower && displayItems.filter(i => !i.parentId).length === 0 && (
+            <div className="empty-state-box">
+              <p>No items match <strong>"{searchQuery}"</strong>.</p>
             </div>
           )}
 
