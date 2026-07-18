@@ -1,4 +1,13 @@
 import { useState, useEffect, Fragment } from 'react'
+import {
+  DndContext, closestCenter, PointerSensor, TouchSensor,
+  KeyboardSensor, useSensor, useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext, verticalListSortingStrategy, useSortable,
+  sortableKeyboardCoordinates, arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { generateSuggestions, migrateSavedItems } from '../data/suggestions'
 import { getCategories, addCategory as persistAddCategory, getCategoryRenames } from '../utils/categories'
 import Modal from './Modal'
@@ -6,6 +15,33 @@ import ExternalLinkIcon from './ExternalLinkIcon'
 import { formatDateRange } from '../utils/format'
 import { listKey, notesKey as makeNotesKey, wishKey as makeWishKey, BLOCKLIST_KEY, USER_DEFAULTS_KEY } from '../utils/storageKeys'
 import './PackingListPage.css'
+
+function SortableItemRow({ id, className, children, disabled }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled })
+  return (
+    <li
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 10 : 'auto' }}
+      className={`${className}${isDragging ? ' item-row--dragging' : ''}`}
+    >
+      <button
+        className="item-drag-handle"
+        {...attributes}
+        {...listeners}
+        aria-label="Drag to reorder"
+        tabIndex={-1}
+        style={{ visibility: disabled ? 'hidden' : 'visible' }}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <rect x="2" y="3" width="12" height="1.5" rx="0.75"/>
+          <rect x="2" y="7.25" width="12" height="1.5" rx="0.75"/>
+          <rect x="2" y="11.5" width="12" height="1.5" rx="0.75"/>
+        </svg>
+      </button>
+      {children}
+    </li>
+  )
+}
 
 function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = false }) {
   const storageKey = listKey(event.id)
@@ -56,6 +92,36 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
   const [newCategoryName, setNewCategoryName] = useState('')
 
   const isPast = event.status === 'past'
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  function handleItemDragEnd({ active, over }) {
+    if (!over || active.id === over.id) return
+    setItems(prev => {
+      const activeItem = prev.find(i => i.id === active.id)
+      const overItem = prev.find(i => i.id === over.id)
+      if (!activeItem || !overItem || activeItem.category !== overItem.category) return prev
+      const catVisible = prev.filter(i =>
+        !i.rejected && i.category === activeItem.category && !i.parentId &&
+        (filterUnpacked ? !i.packed : true)
+      )
+      const oldIdx = catVisible.findIndex(i => i.id === active.id)
+      const newIdx = catVisible.findIndex(i => i.id === over.id)
+      if (oldIdx === -1 || newIdx === -1) return prev
+      const reordered = arrayMove(catVisible, oldIdx, newIdx)
+      const catPositions = prev.reduce((acc, item, idx) => {
+        if (reordered.some(r => r.id === item.id)) acc.push(idx)
+        return acc
+      }, [])
+      const result = [...prev]
+      reordered.forEach((item, i) => { result[catPositions[i]] = item })
+      return result
+    })
+  }
 
   useEffect(() => { localStorage.setItem(storageKey, JSON.stringify(items)) }, [items, storageKey])
   useEffect(() => { localStorage.setItem(notesStorageKey, notes) }, [notes, notesStorageKey])
@@ -436,18 +502,25 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
             </div>
           )}
 
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={() => { setExpandedBuyId(null); setExpandedRemoveId(null); setAddingSubTo(null) }}
+            onDragEnd={handleItemDragEnd}
+          >
           {activeCategories.map(category => {
             const topLevel = displayItems.filter(i => i.category === category && !i.parentId)
             return (
               <section key={category} className="category-section">
                 <h3 className="category-heading">{category}</h3>
+                <SortableContext items={topLevel.map(i => i.id)} strategy={verticalListSortingStrategy}>
                 <ul className="item-list">
                   {topLevel.map(item => {
                     const children = displayItems.filter(i => i.parentId === item.id)
                     return (
                       <Fragment key={item.id}>
                         {/* Parent row */}
-                        <li className={`item-row ${item.packed ? 'item-row--packed' : ''}`}>
+                        <SortableItemRow id={item.id} className={`item-row ${item.packed ? 'item-row--packed' : ''}`} disabled={feedbackMode}>
                           <input type="checkbox" checked={item.packed} onChange={() => togglePacked(item.id)} className="item-checkbox" aria-label={`Mark ${item.label || item.name} as packed`} />
                           <div className="item-main">
                             <span className="item-name">{item.label || item.name}</span>
@@ -460,7 +533,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
                             )}
                           </div>
                           <div className="item-actions">{renderActions(item, item.label || item.name)}</div>
-                        </li>
+                        </SortableItemRow>
 
                         {/* Children */}
                         {children.map(child => (
@@ -534,6 +607,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
                     )
                   })}
                 </ul>
+                </SortableContext>
 
                 {!feedbackMode && (
                   addingTo === category ? (
@@ -560,6 +634,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
               </section>
             )
           })}
+          </DndContext>
 
           {!feedbackMode && (
             <section className="category-section category-section--new">

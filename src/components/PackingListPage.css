@@ -149,6 +149,30 @@
   border-bottom: 1px solid var(--bg);
 }
 
+.item-drag-handle {
+  background: none;
+  border: none;
+  color: var(--text-ghost);
+  cursor: grab;
+  padding: 0.2rem;
+  touch-action: none;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.item-drag-handle:active {
+  cursor: grabbing;
+  color: var(--text-faint);
+}
+
+.item-row--dragging {
+  opacity: 0.45;
+  background: var(--bg-card);
+  border-radius: 6px;
+}
+
 .item-row:last-child {
   border-bottom: none;
 }
