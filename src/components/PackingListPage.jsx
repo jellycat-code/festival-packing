@@ -13,7 +13,7 @@ import { getCategories, addCategory as persistAddCategory, getCategoryRenames } 
 import Modal from './Modal'
 import ExternalLinkIcon from './ExternalLinkIcon'
 import { formatDateRange } from '../utils/format'
-import { listKey, notesKey as makeNotesKey, wishKey as makeWishKey, BLOCKLIST_KEY, USER_DEFAULTS_KEY } from '../utils/storageKeys'
+import { listKey, notesKey as makeNotesKey, wishKey as makeWishKey, prepKey as makePrepKey, BLOCKLIST_KEY, USER_DEFAULTS_KEY } from '../utils/storageKeys'
 import './PackingListPage.css'
 
 function SortableItemRow({ id, className, children, disabled }) {
@@ -47,6 +47,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
   const storageKey = listKey(event.id)
   const notesStorageKey = makeNotesKey(event.id)
   const wishStorageKey = makeWishKey(event.id)
+  const prepStorageKey = makePrepKey(event.id)
 
   const [showChoice, setShowChoice] = useState(() => !localStorage.getItem(storageKey))
   const [items, setItems] = useState(() => {
@@ -66,6 +67,15 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
       return []
     }
   })
+  const [prepItems, setPrepItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem(prepStorageKey)
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
+  const [newPrepName, setNewPrepName] = useState('')
 
   const [view, setView] = useState('packing')
   const [feedbackMode, setFeedbackMode] = useState(initialFeedbackMode)
@@ -127,6 +137,7 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
   useEffect(() => { localStorage.setItem(storageKey, JSON.stringify(items)) }, [items, storageKey])
   useEffect(() => { localStorage.setItem(notesStorageKey, notes) }, [notes, notesStorageKey])
   useEffect(() => { localStorage.setItem(wishStorageKey, JSON.stringify(wishItems)) }, [wishItems, wishStorageKey])
+  useEffect(() => { localStorage.setItem(prepStorageKey, JSON.stringify(prepItems)) }, [prepItems, prepStorageKey])
 
   // --- Item actions ---
   function togglePacked(id) {
@@ -221,6 +232,22 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
   }
   function removeWishItem(id) {
     setWishItems(prev => prev.filter(i => i.id !== id))
+  }
+
+  function addPrepItem() {
+    const name = newPrepName.trim()
+    if (!name) return
+    setPrepItems(prev => [...prev, { id: Date.now(), name, done: false }])
+    setNewPrepName('')
+  }
+  function togglePrepDone(id) {
+    setPrepItems(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t))
+  }
+  function removePrepItem(id) {
+    setPrepItems(prev => prev.filter(t => t.id !== id))
+  }
+  function clearDonePrepItems() {
+    setPrepItems(prev => prev.filter(t => !t.done))
   }
 
   function addToBlocklist(itemName) {
@@ -424,11 +451,15 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
       {/* Tabs */}
       <div className="view-tabs">
         <button className={`view-tab ${view === 'packing' ? 'view-tab--active' : ''}`} onClick={() => setView('packing')}>
-          Packing List
+          Packing
         </button>
         <button className={`view-tab ${view === 'shopping' ? 'view-tab--active' : ''}`} onClick={() => setView('shopping')}>
           Shopping List
           {shoppingItems.length > 0 && <span className="tab-badge">{shoppingItems.length}</span>}
+        </button>
+        <button className={`view-tab ${view === 'prep' ? 'view-tab--active' : ''}`} onClick={() => setView('prep')}>
+          Prep
+          {prepItems.filter(t => !t.done).length > 0 && <span className="tab-badge">{prepItems.filter(t => !t.done).length}</span>}
         </button>
       </div>
 
@@ -518,6 +549,66 @@ function PackingListPage({ event, onBack, onEditEvent, initialFeedbackMode = fal
           </section>
         )}
       </>)}
+
+      {/* ── PREP VIEW ── */}
+      {view === 'prep' && (() => {
+        const activePrepItems = prepItems.filter(t => !t.done)
+        const donePrepItems = prepItems.filter(t => t.done)
+        return (
+          <>
+            <div className="prep-add-form">
+              <input
+                type="text"
+                className="prep-add-input"
+                value={newPrepName}
+                onChange={e => setNewPrepName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') addPrepItem() }}
+                placeholder="Add a task…"
+                aria-label="New prep task"
+              />
+              <button className="btn btn--primary" onClick={addPrepItem}>Add</button>
+            </div>
+
+            {prepItems.length === 0 && (
+              <div className="empty-state-box">
+                <p>No prep tasks yet.</p>
+                <p>Add anything you need to sort out before the event — pet sitter, transport, accommodation.</p>
+              </div>
+            )}
+
+            {activePrepItems.length > 0 && (
+              <section className="category-section">
+                <ul className="item-list">
+                  {activePrepItems.map(task => (
+                    <li key={task.id} className="item-row">
+                      <input type="checkbox" checked={false} onChange={() => togglePrepDone(task.id)} className="item-checkbox" aria-label={`Mark "${task.name}" as done`} />
+                      <span className="item-name prep-task-name">{task.name}</span>
+                      <button className="btn-remove" onClick={() => removePrepItem(task.id)} aria-label={`Remove "${task.name}"`}>✕</button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {donePrepItems.length > 0 && (
+              <section className="category-section category-section--purchased">
+                <h3 className="category-heading category-heading--purchased">
+                  Done
+                  <button className="btn-clear-prep-done" onClick={clearDonePrepItems}>Clear all</button>
+                </h3>
+                <ul className="item-list">
+                  {donePrepItems.map(task => (
+                    <li key={task.id} className="item-row item-row--purchased">
+                      <input type="checkbox" checked onChange={() => togglePrepDone(task.id)} className="item-checkbox" aria-label={`Mark "${task.name}" as not done`} />
+                      <span className="item-name">{task.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
+        )
+      })()}
 
       {/* ── PACKING LIST VIEW ── */}
       {view === 'packing' && (

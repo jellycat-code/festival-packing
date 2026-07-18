@@ -424,6 +424,53 @@
   color: var(--text);
 }
 
+/* Prep tab */
+.prep-add-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.prep-add-input {
+  flex: 1;
+  font-size: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  background: var(--bg-card);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.prep-add-input:focus {
+  border-color: var(--text);
+}
+
+.prep-add-input::placeholder {
+  color: var(--text-ghost);
+}
+
+.prep-task-name {
+  flex: 1;
+}
+
+.btn-clear-prep-done {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-faint);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  transition: color 0.15s;
+}
+
+.btn-clear-prep-done:hover {
+  color: var(--text-light);
+}
+
 /* Purchased items */
 .category-section--purchased {
   background: transparent;
